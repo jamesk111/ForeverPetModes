@@ -2,6 +2,9 @@ local _, F = ...
 
 local tokens = {
     PET_MODE_DEFENSIVE = "Defensive", PET_ACTION_DEFENSIVE = "Defensive",
+    -- Forever's native button labeled Defensive uses the DefensiveAssist token.
+    PET_MODE_DEFENSIVEASSIST = "Defensive", PET_DEFENSIVEASSIST_TEXTURE = "Defensive",
+    PET_MODE_ASSIST = "Assist", PET_ASSIST_TEXTURE = "Assist",
     PET_MODE_PASSIVE = "Passive", PET_ACTION_MODE_PASSIVE = "Passive",
     PET_MODE_AGGRESSIVE = "Aggressive", PET_ACTION_AGGRESSIVE = "Aggressive",
     PET_DEFENSIVE_TEXTURE = "Defensive", PET_PASSIVE_TEXTURE = "Passive",

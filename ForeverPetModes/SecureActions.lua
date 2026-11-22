@@ -50,43 +50,27 @@ function F.prepareButton(button)
     button:SetScript("PostClick", function(self)
         F.clickSerial = (F.clickSerial or 0) + 1
         local serial, profile = F.clickSerial, self.profile
-        F.pending, F.failedProfile, F.confirmedProfile = nil, nil, nil
-
-        local function finish(message, state)
-            F.pending, F.feedback = nil, message
+        F.pending, F.failedProfile = nil, nil
+        local state = F.readPet()
+        if InCombatLockdown() or IsModifierKeyDown() or self.problem then
             F.paint(state)
-            if message then
-                C_Timer.After(4, function()
-                    if serial ~= F.clickSerial then return end
-                    F.feedback, F.failedProfile, F.confirmedProfile = nil, nil, nil
-                    F.refresh()
-                end)
-            end
+            return
         end
 
-        local state = F.readPet()
-        if InCombatLockdown() then finish("Use the pet bar in combat.", state) return end
-        if IsModifierKeyDown() then finish("Click without a modifier key.", state) return end
-        if self.problem then finish(self.problem, state) return end
-
-        -- The stance and autocast updates can arrive on different frames.
-        -- Only sample the bar here. Never replay a pet command from a timer.
+        -- Read delayed bar updates without replaying any pet action.
         F.pending = profile
-        F.feedback = "Switching to " .. profile.label .. "..."
         local delays = { 0.15, 0.35, 0.70, 1.0 }
         local function verify(index, snapshot)
             if serial ~= F.clickSerial then return end
             if #F.differences(profile, snapshot) == 0 then
-                F.confirmedProfile = profile
-                finish(F.db.confirm and (profile.label .. " active") or nil, snapshot)
+                F.pending = nil
                 if F.db.sound then PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) end
             elseif delays[index] then
-                F.paint(snapshot)
                 C_Timer.After(delays[index], function() verify(index + 1, F.readPet()) end)
             else
-                F.failedProfile = profile
-                finish(profile.label .. " incomplete. Check the pet bar.", snapshot)
+                F.pending, F.failedProfile = nil, profile
             end
+            F.paint(snapshot)
         end
         verify(1, state)
     end)

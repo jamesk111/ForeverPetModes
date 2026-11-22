@@ -15,7 +15,7 @@ end
 function F.applySettings(db)
     if InCombatLockdown() then return false end
     F.clickSerial = (F.clickSerial or 0) + 1
-    F.pending, F.feedback, F.failedProfile, F.confirmedProfile = nil, nil, nil, nil
+    F.pending, F.failedProfile = nil, nil
     F.db, ForeverPetModesDB = db, db
     F.layout()
     F.refresh()

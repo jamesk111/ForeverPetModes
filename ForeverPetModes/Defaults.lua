@@ -4,7 +4,7 @@ F.defaults = {
     width = 100, height = 32, scale = 1, spacing = 4, border = 2,
     opacity = 0.78, inactive = "343638", vertical = false, locked = false,
     title = true, icons = false, hideNoPet = false, hideCombat = false,
-    instance = "any", sound = false, confirm = true,
+    instance = "any", sound = false,
     position = { point = "CENTER", relative = "CENTER", x = 0, y = -135 },
     profiles = {
         { label = "Solo Mode", stance = "Defensive", color = "237440",

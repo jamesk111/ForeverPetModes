@@ -7,7 +7,7 @@ Clone the repository, change to its root and install Lua 5.1 and Python 3. There
 ```bash
 for file in ForeverPetModes/*.lua; do luac5.1 -p "$file" || exit 1; done
 lua5.1 tests/run.lua
-python3 tools/package.py 0.1.1
+python3 tools/package.py 0.1.2
 ```
 
 The harness loads modules through the TOC, supplies fixture pet slots and fires events through the addon frame. It checks localization and ranks, manual transitions, partial failure feedback, pre-click slot reordering, missing/dead pets, restricted values, combat guards, profile parsing, persistence and staged settings changes. The harness inspects macro strings. Blizzard's protected execution, actual event delivery and visual rendering require the game.
@@ -16,7 +16,7 @@ The packager reads the manifest version, checks module membership and writes onl
 
 ## Manual acceptance on Forever
 
-**Status for v0.1.1:** live verification of the updated panel is pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
+**Status for v0.1.2:** live verification of the updated panel is pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
 
 | Scenario | Expected result |
 | --- | --- |

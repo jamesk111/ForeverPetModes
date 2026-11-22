@@ -93,11 +93,27 @@ test("manual partial and complete changes repaint on coalesced events", function
     flush()
     assert(dungeonButton.mark.shown and not soloButton.mark.shown)
 end)
-test("a rejected switch shows the actual state and native-bar fallback on the panel", function()
+test("Forever Defensive shares the DefensiveAssist token and remains distinct from Assist", function()
+    local original = slots[5]
+    slots[5] = nil
+    slots[8] = { "PET_MODE_ASSIST", "PET_ASSIST_TEXTURE", true, false }
+    slots[9] = { "PET_MODE_DEFENSIVEASSIST", "PET_DEFENSIVEASSIST_TEXTURE", true, false }
+    soloButton.scripts.PreClick(soloButton)
+    local text = soloButton.attributes.macrotext1
+    assert(text and text:find("PetActionButton9", 1, true), "Solo must bind the live Defensive slot")
+    assert(text:find("/petautocaston", 1, true) and text:find("Knurren", 1, true))
+    slots[9][4], slots[10][4], slots[4][6] = true, false, true
+    assert(#F.differences(solo, F.readPet()) == 0)
+    slots[8][4], slots[9][4] = true, false
+    assert(F.readPet().stance == "Assist" and #F.differences(solo, F.readPet()) > 0)
+    slots[8], slots[9], slots[5], slots[10][4], slots[4][6] = nil, nil, original, true, false
+    F.refresh()
+end)
+test("a rejected switch leaves only actual state on the panel", function()
     soloButton.scripts.PostClick(soloButton)
     assert(not dungeonButton.mark.shown and not soloButton.mark.shown)
     for i = 1, 4 do flush() end
-    assert(F.panel.status:GetText():find("Solo Mode incomplete", 1, true))
+    assert(F.failedProfile == solo and not F.panel.status:GetText():find("Solo Mode", 1, true))
     assert(F.panel.status:GetText():find("Stance: Passive", 1, true))
     assert(dungeonButton.mark.shown and not soloButton.mark.shown and #chat == 0)
     flush()
@@ -177,7 +193,7 @@ test("combat defers frame changes and emits manual fallback", function()
     flush()
     soloButton.scripts.PreClick(soloButton)
     soloButton.scripts.PostClick(soloButton)
-    assert(F.panel.status:GetText():find("in combat", 1, true) and #chat == 0)
+    assert(not F.panel.status:GetText():find("combat", 1, true) and #chat == 0)
     assert(not F.applySettings(F.copy(F.db)))
     combat = false
     event("PLAYER_REGEN_ENABLED")

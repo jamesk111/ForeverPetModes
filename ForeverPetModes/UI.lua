@@ -15,7 +15,15 @@ local function showTarget(b, state)
         local name = spell and spell.name or F.abilityName(rule.id) or ("Spell " .. rule.id)
         GameTooltip:AddLine(name .. " autocast: " .. (rule.on and "ON" or "OFF"), 1, 1, 1)
     end
-    if InCombatLockdown() then GameTooltip:AddLine("Available after combat.", 1, 0.8, 0.5) end
+    if InCombatLockdown() then
+        GameTooltip:AddLine("Available after combat.", 1, 0.8, 0.5)
+    elseif b.problem then
+        GameTooltip:AddLine(b.problem, 1, 0.8, 0.5, true)
+    elseif F.failedProfile == b.profile then
+        for _, difference in ipairs(F.differences(b.profile, state)) do
+            GameTooltip:AddLine(difference, 1, 0.8, 0.5, true)
+        end
+    end
     GameTooltip:Show()
 end
 
@@ -130,7 +138,7 @@ function F.visibility()
     end
 end
 
-local function statusText(state, matched)
+local function statusText(state)
     if state.reason then return state.reason end
     local lines = { "Stance: " .. (state.stance or "Unknown") }
     local seen = {}
@@ -152,26 +160,21 @@ local function statusText(state, matched)
             end
         end
     end
-    if not matched and not F.pending then lines[#lines + 1] = "No matching profile" end
     return table.concat(lines, "\n")
 end
 
 function F.paint(state)
-    local matched = false
     for i, profile in ipairs(F.db.profiles) do
         local b = buttons[i]
         local active = #F.differences(profile, state) == 0
-        if not active and F.confirmedProfile == profile then F.feedback, F.confirmedProfile = nil, nil end
-        if active and F.failedProfile == profile then F.feedback, F.failedProfile = nil, nil end
-        matched = matched or active
+        if active and F.failedProfile == profile then F.failedProfile = nil end
         active = active and (not F.pending or F.pending == profile)
         b.fill:SetColorTexture(F.rgb(active and profile.color or F.db.inactive))
         b.mark:SetShown(active)
         F.bind(b, profile, state)
     end
     local panel = F.panel
-    local text = statusText(state, matched)
-    if F.feedback then text = text .. "\n|cffffda83" .. F.feedback .. "|r" end
+    local text = statusText(state)
     if text ~= panel.status:GetText() then panel.status:SetText(text) end
     if not InCombatLockdown() then
         local height = panel.buttonHeight + math.ceil(panel.status:GetStringHeight()) + 6

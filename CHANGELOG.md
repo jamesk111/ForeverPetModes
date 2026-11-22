@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.2 · 2026-11-21
+
+- Recognize the Forever pet button labeled Defensive, including its DefensiveAssist token. This restores the Solo binding and its Growl ON command on affected pet bars.
+- Keep click feedback on the profile buttons. The panel shows current pet state and ability flags. Troubleshooting details are available on hover.
+
 ## v0.1.1 · 2026-11-21
 
 - Added live stance and autocast indicators beneath the buttons, including unavailable configured abilities.
