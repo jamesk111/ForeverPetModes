@@ -33,8 +33,11 @@ end
 function F.bind(button, profile, state)
     if InCombatLockdown() then return end
     local text, reason = F.macro(profile, state)
-    button:SetAttribute("macrotext1", text)
-    button:SetAttribute("type1", text and "macro" or nil)
+    if button.boundText ~= text then
+        button:SetAttribute("macrotext1", text)
+        button:SetAttribute("type1", text and "macro" or nil)
+        button.boundText = text
+    end
     button.problem = reason
 end
 
@@ -45,20 +48,46 @@ function F.prepareButton(button)
         if not InCombatLockdown() then F.bind(self, self.profile, F.readPet()) end
     end)
     button:SetScript("PostClick", function(self)
-        if InCombatLockdown() then F.say("Use the Blizzard pet bar in combat.") return end
-        if IsModifierKeyDown() then F.say("Click the profile without a modifier key.") return end
-        if self.problem then F.say(self.problem) return end
         F.clickSerial = (F.clickSerial or 0) + 1
         local serial, profile = F.clickSerial, self.profile
-        C_Timer.After(0.4, function()
-            if serial ~= F.clickSerial then return end
-            local missing = F.differences(profile, F.refresh())
-            if #missing > 0 then
-                F.say(table.concat(missing, " "))
-            else
-                if F.db.confirm then F.say(profile.label .. " active.") end
-                if F.db.sound then PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) end
+        F.pending, F.failedProfile, F.confirmedProfile = nil, nil, nil
+
+        local function finish(message, state)
+            F.pending, F.feedback = nil, message
+            F.paint(state)
+            if message then
+                C_Timer.After(4, function()
+                    if serial ~= F.clickSerial then return end
+                    F.feedback, F.failedProfile, F.confirmedProfile = nil, nil, nil
+                    F.refresh()
+                end)
             end
-        end)
+        end
+
+        local state = F.readPet()
+        if InCombatLockdown() then finish("Use the pet bar in combat.", state) return end
+        if IsModifierKeyDown() then finish("Click without a modifier key.", state) return end
+        if self.problem then finish(self.problem, state) return end
+
+        -- The stance and autocast updates can arrive on different frames.
+        -- Only sample the bar here. Never replay a pet command from a timer.
+        F.pending = profile
+        F.feedback = "Switching to " .. profile.label .. "..."
+        local delays = { 0.15, 0.35, 0.70, 1.0 }
+        local function verify(index, snapshot)
+            if serial ~= F.clickSerial then return end
+            if #F.differences(profile, snapshot) == 0 then
+                F.confirmedProfile = profile
+                finish(F.db.confirm and (profile.label .. " active") or nil, snapshot)
+                if F.db.sound then PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) end
+            elseif delays[index] then
+                F.paint(snapshot)
+                C_Timer.After(delays[index], function() verify(index + 1, F.readPet()) end)
+            else
+                F.failedProfile = profile
+                finish(profile.label .. " incomplete. Check the pet bar.", snapshot)
+            end
+        end
+        verify(1, state)
     end)
 end

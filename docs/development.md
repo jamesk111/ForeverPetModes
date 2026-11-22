@@ -7,7 +7,7 @@ Clone the repository, change to its root and install Lua 5.1 and Python 3. There
 ```bash
 for file in ForeverPetModes/*.lua; do luac5.1 -p "$file" || exit 1; done
 lua5.1 tests/run.lua
-python3 tools/package.py 0.1.0
+python3 tools/package.py 0.1.1
 ```
 
 The harness loads modules through the TOC, supplies fixture pet slots and fires events through the addon frame. It checks localization and ranks, manual transitions, partial failure feedback, pre-click slot reordering, missing/dead pets, restricted values, combat guards, profile parsing, persistence and staged settings changes. The harness inspects macro strings. Blizzard's protected execution, actual event delivery and visual rendering require the game.
@@ -16,12 +16,13 @@ The packager reads the manifest version, checks module membership and writes onl
 
 ## Manual acceptance on Forever
 
-**Status for v0.1.0:** pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
+**Status for v0.1.1:** live verification of the updated panel is pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
 
 | Scenario | Expected result |
 | --- | --- |
 | Clean login with addon enabled | No Lua errors. Two buttons appear; labels fit. `/fpm status` reports the expected build and TOC. |
 | Live hunter pet with Defensive, Passive and Growl on its bar | Click Solo, then Dungeon. Inspect the native selected stance and autocast border after each click. Green/blue and the asterisk appear only on the full match. Repeating either click leaves the native setting stable. |
+| Dungeon to Solo with a delayed Growl update | During the switch, the old blue mark clears. Check the live stance and Growl row against the native bar. Solo turns green when Defensive and Growl ON are both observed. Check with the pointer over each button. |
 | Manually change only stance or only Growl | A partial match immediately loses its highlight. Completing the other profile activates it without clicking the addon. |
 | Move stance and Growl to other slots; use another pet or a different Growl rank | A fresh click resolves the new slots and localized name. No unrelated ability is activated. |
 | Dismiss, summon, kill and revive pet | Active marks clear and return with readable matching state. With a required ability removed, a click reports the missing ability. |

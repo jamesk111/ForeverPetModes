@@ -16,6 +16,10 @@ local function secret(...)
     return false
 end
 
+local function flagged(value)
+    return value == true or value == 1
+end
+
 local function unavailable(message)
     return { reason = message, slots = {}, abilities = {} }
 end
@@ -35,24 +39,29 @@ function F.readPet()
         if secret(name, icon, token, active, allowed, enabled, id) then
             return unavailable("Pet bar information is restricted.")
         end
-        if token then
+        if flagged(token) then
             local stance = tokens[name] or tokens[icon]
             if stance then
                 state.slots[stance] = slot
-                if active then
+                if flagged(active) then
                     if state.stance and state.stance ~= stance then
                         return unavailable("Pet stance is changing.")
                     end
                     state.stance = stance
                 end
             end
-        elseif allowed and type(id) == "number" and type(name) == "string" then
+        elseif flagged(allowed) and type(id) == "number" and type(name) == "string" then
             state.abilities[#state.abilities + 1] = {
-                id = id, name = name, on = enabled == true or enabled == 1,
+                id = id, name = name, on = flagged(enabled),
             }
         end
     end
     return state
+end
+
+function F.abilityName(id)
+    local name = C_Spell.GetSpellName(id)
+    if not secret(name) then return name end
 end
 
 function F.resolve(state, id)
@@ -60,8 +69,8 @@ function F.resolve(state, id)
         if spell.id == id then return spell end
     end
     -- Configured rank and trained rank may have different IDs but one localized name.
-    local name = C_Spell.GetSpellName(id)
-    if secret(name) or not name then return end
+    local name = F.abilityName(id)
+    if not name then return end
     for _, spell in ipairs(state.abilities) do
         if spell.name == name then return spell end
     end

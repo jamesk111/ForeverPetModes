@@ -12,17 +12,19 @@ Switch a hunter pet between solo and dungeon settings in **World of Warcraft: Fo
 ```text
 ┌────────── Forever Pet Modes ──────────┐
 │ [ Solo Mode  * ]   [ Dungeon Mode  ] │
+│ Stance: Defensive                    │
+│ Growl  ON                            │
 └───────────────────────────────────────┘
 ```
 
 Turn off Growl on the pet bar while still in Defensive and both buttons lose their highlight. Select Passive and Dungeon lights up. If you configure two identical profiles, both highlight when their rules match.
 
-## Install v0.1.0
+## Install v0.1.1
 
-1. Download **ForeverPetModes-v0.1.0.zip** from the [release](https://github.com/jamesk111/ForeverPetModes/releases/tag/v0.1.0).
+1. Download **ForeverPetModes-v0.1.1.zip** from the [release](https://github.com/jamesk111/ForeverPetModes/releases/tag/v0.1.1).
 2. Close WoW and extract the ZIP into `World of Warcraft/_forever_/Interface/AddOns/`. The resulting file path should end in `AddOns/ForeverPetModes/ForeverPetModes.toc`.
 3. Start Forever, enable **Forever Pet Modes** in the AddOns list and log in. Summon a pet. Place its stance controls and Growl on the Blizzard pet action bar.
-4. Click a profile with the left mouse button and no modifier keys, outside combat. Hover for missing steps. Type `/fpm status` to inspect the current stance, spell IDs, autocast values and profile matches.
+4. Click a profile with the left mouse button and no modifier keys, outside combat. Hover to preview the target stance and autocast settings. Read the live stance and each ability’s ON/OFF indicator beneath the buttons. Type `/fpm status` to inspect the current stance, spell IDs, autocast values and profile matches.
 
 Target client **1.60.1**, interface **16001**. The UI implementation was checked against build **71037**. Lua and release packaging were tested offline. Live-client acceptance is pending, including native macro execution, taint checks and persistence across an actual logout.
 
@@ -33,7 +35,7 @@ Type **`/fpm`** outside combat. Use the arrows to move between Appearance, Behav
 | Page | Controls |
 | --- | --- |
 | Appearance | Width, height, scale, spacing, border, inactive hex color, vertical or horizontal layout, icon or text buttons, title visibility, background opacity |
-| Behavior | Lock position, hide without a pet, hide in combat, show anywhere or only inside/outside instances, optional chat and sound confirmation |
+| Behavior | Lock position, hide without a pet, hide in combat, show anywhere or only inside/outside instances, optional panel and sound confirmation |
 | Each profile | Button label, active hex color, icon file ID, stance and ability autocast rules |
 
 Drag the title or outer padding to position the panel. The padding still works with the title hidden. Set background opacity to `0` for a transparent panel. Position and settings are account-wide and saved by WoW on a normal logout or `/reload`.
@@ -44,7 +46,7 @@ Ability rules use a comma-separated list such as `2649=on, 17253=off`. Use `/fpm
 
 The addon builds an out-of-combat click from the current stance slot and the localized names of the required abilities. It requests explicit autocast on or off, so repeating a click preserves the intended setting. It checks the entire configuration before binding a button. If a required ability or stance is missing, the click explains what to place on the bar.
 
-If the client accepts only part of a click, the addon reads the result. Its message tells you which stance to select or which spell to right-click. In combat, use the Blizzard pet bar. Highlighting continues when readable, and unavailable or restricted data clears the highlight. Zoning and leaving combat refresh visibility and bindings. All pet actions require a fresh player click.
+If the client accepts only part of a click, the addon reads the result. The panel briefly shows which profile is switching and rechecks the live bar for up to 2.2 seconds. A partial match leaves both default buttons inactive. If the switch remains incomplete, compare the live rows with the target in the button tooltip. In combat, use the Blizzard pet bar. Highlighting continues when readable, and unavailable or restricted data clears the highlight. Zoning and leaving combat refresh visibility and bindings. All pet actions require a fresh player click.
 
 ## Architecture
 
@@ -58,10 +60,10 @@ From the repository root with Lua 5.1 and Python 3 installed, run
 
 ```bash
 lua5.1 tests/run.lua
-python3 tools/package.py 0.1.0
+python3 tools/package.py 0.1.1
 ```
 
-The install package is written to `dist/ForeverPetModes-v0.1.0.zip`. There are no runtime dependencies beyond the game client.
+The install package is written to `dist/ForeverPetModes-v0.1.1.zip`. There are no runtime dependencies beyond the game client.
 
 ## Troubleshooting and shutdown
 

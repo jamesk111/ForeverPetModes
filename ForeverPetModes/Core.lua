@@ -15,6 +15,7 @@ end
 function F.applySettings(db)
     if InCombatLockdown() then return false end
     F.clickSerial = (F.clickSerial or 0) + 1
+    F.pending, F.feedback, F.failedProfile, F.confirmedProfile = nil, nil, nil, nil
     F.db, ForeverPetModesDB = db, db
     F.layout()
     F.refresh()
@@ -69,7 +70,7 @@ events:SetScript("OnEvent", function(self, event, unit)
         SlashCmdList.FOREVERPETMODES = command
         for _, name in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_ENABLED",
             "PLAYER_REGEN_DISABLED", "UNIT_PET", "UNIT_FLAGS", "UNIT_HEALTH", "PET_BAR_UPDATE",
-            "PET_UI_UPDATE", "PET_BAR_UPDATE_USABLE", "ZONE_CHANGED_NEW_AREA", "SPELLS_CHANGED",
+            "PET_UI_UPDATE", "PET_BAR_UPDATE_COOLDOWN", "PET_BAR_UPDATE_USABLE", "ZONE_CHANGED_NEW_AREA", "SPELLS_CHANGED",
             "UPDATE_VEHICLE_ACTIONBAR", "PLAYER_CONTROL_GAINED", "PLAYER_CONTROL_LOST" }) do
             if name == "UNIT_HEALTH" or name == "UNIT_FLAGS" then self:RegisterUnitEvent(name, "pet")
             else self:RegisterEvent(name) end

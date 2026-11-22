@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.1 · 2026-11-21
+
+- Added live stance and autocast indicators beneath the buttons, including unavailable configured abilities.
+- Moved click feedback onto the panel. Hover previews the profile's requested settings.
+- Clear the previous highlight during a switch and recheck delayed pet-bar updates. A superseded click cannot overwrite the latest result.
+- Treat numeric zero as an inactive pet-bar flag. Added regression tests for the Dungeon-to-Solo transition.
+
 ## v0.1.0 · 2026-11-21
 
 - Added Solo and Dungeon profiles with exact pet-bar matching and manual fallback feedback.

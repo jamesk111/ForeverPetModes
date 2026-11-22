@@ -26,6 +26,7 @@ function methods:CreateTexture() return widget("Texture", self) end
 function methods:CreateFontString() return widget("FontString", self) end
 function methods:SetText(v) self.textValue = v end
 function methods:GetText() return self.textValue end
+function methods:GetStringHeight() return 12 end
 function methods:Show() assert(not (combat and self.protected)) self.shown = true end
 function methods:Hide() assert(not (combat and self.protected)) self.shown = false end
 function methods:SetShown(v) self.shown = v end
@@ -92,12 +93,53 @@ test("manual partial and complete changes repaint on coalesced events", function
     flush()
     assert(dungeonButton.mark.shown and not soloButton.mark.shown)
 end)
-test("native rejection reports the remaining step instead of a success", function()
+test("a rejected switch shows the actual state and native-bar fallback on the panel", function()
     soloButton.scripts.PostClick(soloButton)
+    assert(not dungeonButton.mark.shown and not soloButton.mark.shown)
+    for i = 1, 4 do flush() end
+    assert(F.panel.status:GetText():find("Solo Mode incomplete", 1, true))
+    assert(F.panel.status:GetText():find("Stance: Passive", 1, true))
+    assert(dungeonButton.mark.shown and not soloButton.mark.shown and #chat == 0)
     flush()
-    assert(chat[#chat]:find("Select Defensive", 1, true))
-    assert(chat[#chat]:find("Right-click Knurren", 1, true))
-    assert(not soloButton.mark.shown)
+end)
+test("Dungeon to Solo clears stale color and tracks late Growl with no extra event", function()
+    soloButton.scripts.PostClick(soloButton)
+    slots[5][4], slots[10][4] = 1, 0
+    flush()
+    assert(not soloButton.mark.shown and not dungeonButton.mark.shown)
+    assert(F.panel.status:GetText():find("Stance: Defensive", 1, true))
+    assert(F.panel.status:GetText():match("Knurren.-OFF"))
+    slots[4][6] = 1
+    flush()
+    assert(soloButton.mark.shown and not dungeonButton.mark.shown)
+    assert(F.panel.status:GetText():match("Knurren.-ON"))
+    assert(#chat == 0)
+    flush()
+    slots[5][4], slots[10][4], slots[4][6] = false, true, false
+    F.refresh()
+end)
+test("new clicks supersede old confirmations and tooltips describe click targets", function()
+    soloButton.scripts.PostClick(soloButton)
+    dungeonButton.scripts.PostClick(dungeonButton)
+    flush()
+    assert(not F.pending and dungeonButton.mark.shown and not soloButton.mark.shown)
+    GameTooltip = widget("Tooltip")
+    local lines = {}
+    function GameTooltip:AddLine(line) lines[#lines + 1] = line end
+    soloButton.scripts.OnEnter(soloButton)
+    local tooltip = table.concat(lines, " ")
+    assert(tooltip:find("Click to apply", 1, true) and tooltip:find("Knurren autocast: ON", 1, true))
+    assert(not tooltip:find("Right-click") and #chat == 0)
+end)
+test("live panel lists other autocasts and marks missing Growl unavailable", function()
+    local growl = slots[4]
+    slots[4] = { "Bite", nil, 0, false, 1, false, 17253 }
+    F.refresh()
+    local text = F.panel.status:GetText()
+    assert(text:match("Bite.-OFF") and text:match("Knurren.-Unavailable"))
+    assert(not soloButton.mark.shown and not dungeonButton.mark.shown)
+    slots[4] = growl
+    F.refresh()
 end)
 test("bar reordering resolves again immediately before the physical click", function()
     slots[2], slots[5] = slots[5], nil
@@ -135,7 +177,7 @@ test("combat defers frame changes and emits manual fallback", function()
     flush()
     soloButton.scripts.PreClick(soloButton)
     soloButton.scripts.PostClick(soloButton)
-    assert(chat[#chat]:find("in combat", 1, true))
+    assert(F.panel.status:GetText():find("in combat", 1, true) and #chat == 0)
     assert(not F.applySettings(F.copy(F.db)))
     combat = false
     event("PLAYER_REGEN_ENABLED")

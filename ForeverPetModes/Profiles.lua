@@ -4,7 +4,7 @@ function F.differences(profile, state)
     if state.reason then return { state.reason } end
     local missing = {}
     if state.stance ~= profile.stance then
-        missing[#missing + 1] = "Select " .. profile.stance .. " on the pet bar."
+        missing[#missing + 1] = "Stance is " .. (state.stance or "unknown") .. " (needs " .. profile.stance .. ")."
     end
     for _, rule in ipairs(profile.rules) do
         local spell = F.resolve(state, rule.id)
@@ -12,7 +12,7 @@ function F.differences(profile, state)
             missing[#missing + 1] = "Place an autocastable pet ability for spell ID " .. rule.id .. " on the pet bar."
         elseif spell.on ~= rule.on then
             local setting = rule.on and "ON" or "OFF"
-            missing[#missing + 1] = "Right-click " .. spell.name .. " on the pet bar to turn autocast " .. setting .. "."
+            missing[#missing + 1] = spell.name .. " is " .. (spell.on and "ON" or "OFF") .. " (needs " .. setting .. ")."
         end
     end
     return missing

@@ -10,7 +10,7 @@ local appearance = {
 local behavior = {
     { "locked", "Lock position", "toggle" }, { "hideNoPet", "Hide without a pet", "toggle" },
     { "hideCombat", "Hide in combat", "toggle" }, { "instance", "Show in", { "any", "inside", "outside" } },
-    { "confirm", "Confirm in chat", "toggle" }, { "sound", "Confirmation sound", "toggle" },
+    { "confirm", "Confirm on panel", "toggle" }, { "sound", "Confirmation sound", "toggle" },
 }
 local profileFields = {
     { "label", "Button label", "label" }, { "stance", "Pet stance", { "Defensive", "Passive", "Aggressive" } },
