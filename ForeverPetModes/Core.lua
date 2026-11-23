@@ -8,9 +8,23 @@ end
 
 function F.refresh()
     local state = F.readPet()
-    if F.panel then F.paint(state) end
+    if F.panel and F.classVisible then F.paint(state) end
     F.refreshPicker(state)
     return state
+end
+
+local function updateDisplay()
+    if InCombatLockdown() then return end
+    local _, class = UnitClass("player")
+    F.classVisible = not F.db.huntersOnly or class == "HUNTER"
+    F.updateMinimap()
+    if not F.classVisible then
+        if F.panel then F.visibility() end
+        return
+    end
+    if not F.panel then F.createPanel() end
+    F.layout()
+    F.refresh()
 end
 
 function F.applySettings(db)
@@ -18,16 +32,8 @@ function F.applySettings(db)
     F.clickSerial = (F.clickSerial or 0) + 1
     F.pending, F.failedProfile = nil, nil
     F.db, ForeverPetModesDB = db, db
-    F.layout()
-    F.refresh()
+    updateDisplay()
     return true
-end
-
-local function start()
-    if InCombatLockdown() then return end
-    if not F.panel then F.createPanel() end
-    F.layout()
-    F.refresh()
 end
 
 local function refreshSoon()
@@ -35,7 +41,7 @@ local function refreshSoon()
     queued = true
     C_Timer.After(0, function()
         queued = false
-        F.refresh()
+        if F.classVisible then F.refresh() end
     end)
 end
 
@@ -76,16 +82,20 @@ events:SetScript("OnEvent", function(self, event, unit)
             if name == "UNIT_HEALTH" or name == "UNIT_FLAGS" then self:RegisterUnitEvent(name, "pet")
             else self:RegisterEvent(name) end
         end
-    elseif event == "PLAYER_LOGIN" or event == "PLAYER_REGEN_ENABLED" then
-        start()
-    elseif event == "UNIT_PET" and unit ~= "player" then
-        return
-    elseif F.panel then
-        if event == "UNIT_PET" or event == "PLAYER_ENTERING_WORLD" then
+    elseif event == "PLAYER_LOGIN" or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_ENTERING_WORLD" then
+        if event == "PLAYER_ENTERING_WORLD" then
             F.clickSerial = (F.clickSerial or 0) + 1
             F.pending, F.failedProfile = nil, nil
         end
-        if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then F.visibility() end
+        updateDisplay()
+    elseif event == "UNIT_PET" and unit ~= "player" then
+        return
+    elseif F.panel and F.classVisible then
+        if event == "UNIT_PET" then
+            F.clickSerial = (F.clickSerial or 0) + 1
+            F.pending, F.failedProfile = nil, nil
+        end
+        if event == "ZONE_CHANGED_NEW_AREA" then F.visibility() end
         refreshSoon()
     end
 end)

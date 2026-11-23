@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0 · 2026-11-23
+
+- Show the panel only on Hunters by default. The account-wide setting can be changed from any class with /fpm.
+- Added an optional draggable minimap settings button. It follows the class filter, remembers its position, and remains accessible when the main panel is hidden by its pet or instance filters.
+
 ## v0.2.0 · 2026-11-23
 
 - Added a checkmark for a full profile match and an amber availability marker with hover details.

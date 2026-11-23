@@ -2,6 +2,7 @@
 local F, count = {}, 0
 local slots, exists, dead, combat, bar, inside, secret = {}, true, false, false, true, false, {}
 local frames, callbacks, chat = {}, {}, {}
+local playerClass, cursorX, cursorY, mapShape = "HUNTER", 0, 0, "ROUND"
 local strict = { SetAttribute=true, SetSize=true, SetPoint=true, ClearAllPoints=true, SetScale=true,
     StartMoving=true, StopMovingOrSizing=true, Show=true, Hide=true }
 local methods = {}
@@ -22,8 +23,16 @@ function CreateFrame(kind, _, parent, template)
     frames[#frames+1] = w
     return w
 end
+function methods:CreateMaskTexture() return widget("MaskTexture", self) end
+function methods:SetPoint(...) self.lastPoint = {...} end
+function methods:HookScript(name, callback) self.scripts[name] = callback end
 function methods:CreateTexture() return widget("Texture", self) end
-function methods:CreateFontString() return widget("FontString", self) end
+function methods:CreateFontString()
+    local font = widget("FontString", self)
+    self.fonts = self.fonts or {}
+    table.insert(self.fonts, font)
+    return font
+end
 function methods:SetText(v) self.textValue = v end
 function methods:GetText() return self.textValue end
 function methods:GetStringHeight() return 12 end
@@ -38,6 +47,15 @@ function methods:SetScript(k, f) self.scripts[k] = f end
 function methods:SetAttribute(k, v) assert(not combat) self.attributes[k] = v end
 function methods:GetPoint() return "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 120, 140 end
 function RegisterStateDriver(w, _, cond) assert(not combat) w.condition = cond end
+function UnitClass() return "Localized class name", playerClass end
+function GetCursorPosition() return cursorX, cursorY end
+function GetMinimapShape() return mapShape end
+Minimap = widget("Minimap")
+function Minimap:GetCenter() return 300, 200 end
+function Minimap:GetWidth() return 160 end
+function Minimap:GetHeight() return 160 end
+function Minimap:GetEffectiveScale() return 2 end
+function Minimap:GetFrameLevel() return 4 end
 function UnitExists() return exists end
 function UnitIsDeadOrGhost() return dead end
 function PetHasActionBar() return bar end
@@ -75,8 +93,16 @@ slots[5] = { "PET_MODE_DEFENSIVE", nil, true, true }
 slots[10] = { "PET_MODE_PASSIVE", nil, true, false }
 slots[4] = { "Knurren", nil, false, false, true, true, 14916 }
 local solo, dungeon, soloButton, dungeonButton
-test("login builds profiles and matches a localized higher rank", function()
+test("a non-Hunter with a live pet starts with both addon surfaces hidden", function()
+    playerClass = "WARLOCK"
     event("ADDON_LOADED", "ForeverPetModes")
+    event("PLAYER_LOGIN")
+    assert(F.db.huntersOnly and not F.db.showMinimap and not F.panel and not F.minimapButton)
+    event("UNIT_PET", "player")
+    assert(#callbacks == 0 and SlashCmdList.FOREVERPETMODES)
+    playerClass = "HUNTER"
+end)
+test("login builds profiles and matches a localized higher rank", function()
     event("PLAYER_LOGIN")
     solo, dungeon = unpack(F.db.profiles)
     for _, w in ipairs(frames) do
@@ -366,6 +392,80 @@ test("large profiles keep their guards and omit satisfied commands to fit", func
     local text = assert(F.macro(p,s))
     assert(#text <= 255 and text:find("nocombat", 1, true) and text:find("Ability 6", 1, true))
     assert(not text:find("Ability 1", 1, true))
+end)
+test("Hunter filter applies to existing panels and the launcher stays available without a pet", function()
+    local d = F.copy(F.db)
+    d.showMinimap, d.hideNoPet = true, true
+    assert(F.applySettings(d))
+    assert(F.minimapButton.shown and F.panel.condition:find("nopet", 1, true))
+    exists = false
+    event("UNIT_PET", "player")
+    flush()
+    assert(F.minimapButton.shown)
+    playerClass, exists = "WARLOCK", true
+    event("PLAYER_ENTERING_WORLD")
+    assert(not F.classVisible and not F.minimapButton.shown and F.panel.condition == "hide")
+    d = F.copy(F.db)
+    d.huntersOnly = false
+    assert(F.applySettings(d) and F.classVisible and F.minimapButton.shown and F.panel.condition ~= "hide")
+    playerClass = "HUNTER"
+end)
+test("minimap click opens settings, drag persists on save, and combat clicks stay quiet", function()
+    local b = F.minimapButton
+    local window
+    for _, f in ipairs(frames) do if f.advanced and f.scroll then window = f end end
+    assert(window and not window.shown)
+    b.scripts.OnMouseDown(b)
+    b.scripts.OnClick(b)
+    assert(window.shown)
+    b.scripts.OnMouseDown(b)
+    cursorX, cursorY = 600, 620
+    b.scripts.OnDragStart(b)
+    assert(b.scripts.OnUpdate)
+    b.scripts.OnDragStop(b)
+    b.scripts.OnClick(b)
+    assert(window.shown and not b.scripts.OnUpdate and math.abs(F.db.minimapAngle - 90) < 0.001)
+    local save
+    for _, f in ipairs(frames) do if f.textValue == "Save" then save = f end end
+    save.scripts.OnClick(save)
+    assert(not window.shown and math.abs(F.loadSettings(ForeverPetModesDB).minimapAngle - 90) < 0.001)
+    assert(math.abs(b.lastPoint[5] - 83) < 0.001)
+    combat = true
+    b.scripts.OnMouseDown(b)
+    b.scripts.OnClick(b)
+    assert(not window.shown and #chat == 0)
+    combat = false
+    mapShape = "SQUARE"
+    F.db.minimapAngle = 45
+    Minimap.scripts.OnSizeChanged()
+    assert(math.abs(b.lastPoint[4] - 83) < 0.001 and math.abs(b.lastPoint[5] - 83) < 0.001)
+    mapShape = "ROUND"
+end)
+test("Panel toggles persist and old settings adopt the Hunter default", function()
+    local old = F.loadSettings({ width=122 })
+    assert(old.width == 122 and old.huntersOnly and not old.showMinimap)
+    F.openSettings()
+    local save
+    for _, f in ipairs(frames) do if f.textValue == "Save" then save = f end end
+    local function toggle(caption)
+        local body = save.parent.body
+        for _, title in ipairs(body.fonts) do
+            if title.shown and title.textValue == caption then
+                for _, f in ipairs(frames) do
+                    if f.parent == body and f.kind == "Button" and f.shown
+                        and f.lastPoint[3] == title.lastPoint[3] + 4 then return f end
+                end
+            end
+        end
+        error("Missing Panel toggle: " .. caption)
+    end
+    local only, bubble = toggle("Hunters only"), toggle("Minimap button")
+    assert(only.textValue == "Off" and bubble.textValue == "On")
+    only.scripts.OnClick(only)
+    bubble.scripts.OnClick(bubble)
+    save.scripts.OnClick(save)
+    assert(F.db.huntersOnly and not F.db.showMinimap and not F.minimapButton.shown)
+    assert(F.loadSettings({minimapAngle=math.huge}).minimapAngle == F.defaults.minimapAngle)
 end)
 test("corrupt fields recover without dropping adjacent valid edits", function()
     local d = F.loadSettings({ width=-1, height=54, inactive="zzzzzz", position={},

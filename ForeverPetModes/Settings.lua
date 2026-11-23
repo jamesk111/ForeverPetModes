@@ -11,6 +11,7 @@ local behavior = {
     { "locked", "Lock position", "toggle" }, { "hideNoPet", "Hide without a pet", "toggle" },
     { "hideCombat", "Hide in combat", "toggle" }, { "instance", "Show in", { "any", "inside", "outside" } },
     { "sound", "Confirmation sound", "toggle" },
+    { "huntersOnly", "Hunters only", "toggle" }, { "showMinimap", "Minimap button", "toggle" },
 }
 local profileFields = {
     { "label", "Button label", "label" }, { "stance", "Pet stance", { "Defensive", "Passive", "Aggressive", "Assist" } },
@@ -70,6 +71,8 @@ end
 
 function F.loadSettings(saved)
     local db = F.mergeSettings(saved)
+    if math.abs(db.minimapAngle) < math.huge then db.minimapAngle = db.minimapAngle % 360
+    else db.minimapAngle = F.defaults.minimapAngle end
     repair(db, appearance, F.defaults)
     repair(db, behavior, F.defaults)
     local anchor = { CENTER=true, TOP=true, TOPLEFT=true, TOPRIGHT=true, BOTTOM=true,
@@ -142,7 +145,7 @@ local function currentPage()
     if advanced then
         return {appearance[4], appearance[5], appearance[6], appearance[7]}, draft
     end
-    return {appearance[1], appearance[2], appearance[3], appearance[8], behavior[1],
+    return {appearance[1], appearance[2], appearance[3], appearance[8], behavior[1], behavior[6], behavior[7],
         appearance[9], appearance[10], behavior[2], behavior[3], behavior[4], behavior[5]}, draft
 end
 
@@ -336,6 +339,11 @@ local function build()
         else window.message:SetText("Save your edits after combat.") end
     end):SetPoint("BOTTOMRIGHT", -15, 13)
     UISpecialFrames[#UISpecialFrames + 1] = "ForeverPetModesSettings"
+end
+
+function F.saveMinimapAngle(angle)
+    F.db.minimapAngle = angle
+    if window and window:IsShown() then draft.minimapAngle = angle end
 end
 
 function F.openSettings()

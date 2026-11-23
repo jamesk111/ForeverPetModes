@@ -2,7 +2,7 @@
 ## AllowLoadGameType: camelot
 ## Title: Forever Pet Modes
 ## Notes: Pet stance and autocast profiles for WoW: Forever.
-## Version: 0.2.0
+## Version: 0.3.0
 ## SavedVariables: ForeverPetModesDB
 Defaults.lua
 PetState.lua
@@ -11,4 +11,5 @@ SecureActions.lua
 Indicators.lua
 UI.lua
 Settings.lua
+Minimap.lua
 Core.lua
