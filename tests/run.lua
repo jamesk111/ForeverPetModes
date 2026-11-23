@@ -66,6 +66,11 @@ function InCombatLockdown() return combat end
 function IsInInstance() return inside end
 function IsModifierKeyDown() return false end
 function issecretvalue(v) return v == secret end
+local metadataVersion = "0.0.0-test"
+C_AddOns = { GetAddOnMetadata = function(name, field)
+    assert(name == "ForeverPetModes" and field == "Version")
+    return metadataVersion
+end }
 function GetBuildInfo() return "1.60.1", "71037", "", 16001 end
 C_Spell = { GetSpellTexture=function() return 134400 end, GetSpellName=function(id) if id == 2649 then return "Knurren" elseif id == 17253 then return "Bite" end end }
 C_Timer = { After=function(_, fn) callbacks[#callbacks+1] = fn end }
@@ -300,6 +305,16 @@ test("Growl stays first, chips share a row, and hover identifies unmanaged Bite"
     function GameTooltip:AddLine(line) lines[#lines+1] = line end
     second.scripts.OnEnter(second)
     assert(table.concat(lines, " "):find("Dungeon Mode (active): Leave alone", 1, true))
+end)
+test("settings header displays the installed addon metadata version", function()
+    for _, frame in ipairs(frames) do
+        if frame.advanced and frame.scroll then
+            for _, label in ipairs(frame.fonts) do
+                if label:GetText() == "v" .. metadataVersion then return end
+            end
+        end
+    end
+    error("installed version missing from settings header")
 end)
 test("named tabs, icon picker, rank preservation, cancel and advanced settings", function()
     F.openSettings()

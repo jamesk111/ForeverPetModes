@@ -7,7 +7,7 @@ Clone the repository, change to its root and install Lua 5.1 and Python 3. There
 ```bash
 for file in ForeverPetModes/*.lua; do luac5.1 -p "$file" || exit 1; done
 lua5.1 tests/run.lua
-python3 tools/package.py 0.3.1
+python3 tools/package.py 0.3.2
 ```
 
 The harness loads modules through the TOC, supplies fixture pet slots and fires events through the addon frame. It checks localization and ranks, manual transitions, partial failure feedback, pre-click slot reordering, missing/dead pets, restricted values, combat guards, profile parsing, persistence and staged settings changes. The harness inspects macro strings. Blizzard's protected execution, actual event delivery and visual rendering require the game.
@@ -16,7 +16,7 @@ The packager reads the manifest version, checks module membership and writes onl
 
 ## Manual acceptance on Forever
 
-**Status for v0.3.1:** live verification of the updated panel is pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
+**Status for v0.3.2:** live verification of the updated panel is pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
 
 | Scenario | Expected result |
 | --- | --- |
@@ -38,6 +38,10 @@ The packager reads the manifest version, checks module membership and writes onl
 | Settings validation and reset | Try a bad color, out-of-range size and duplicate spell ID. Cancel preserves current settings. Reset then Save restores defaults. |
 | Missing native action or rejected macro line | Read the feedback and apply only the indicated steps via the native bar. State converges without retries. |
 | Mouse timing and alternate locale | Repeat the default profile clicks with both action-button key-down settings and a localized Growl name. Check confirmation, sound and taint/error reporting. |
+
+## CurseForge listing
+
+The [project fields, player description and gallery captions](curseforge/listing.md) accompany the original project avatar and the two player-provided in-game screenshots. The game ZIP contains only the runtime files and license. The captures document both selected profiles. The manual Growl override and launcher behavior with and without EnhanceQoL still need player confirmation for the planned Release submission. [CurseForge submission guide](https://support.curseforge.com/support/solutions/articles/9000199552-project-submission-guide-and-tips)
 
 ## Publishing
 

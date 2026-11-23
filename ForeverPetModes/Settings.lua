@@ -1,4 +1,4 @@
-local _, F = ...
+local addonName, F = ...
 local appearance = {
     { "width", "Button width", 40, 220 }, { "height", "Button height", 20, 80 },
     { "scale", "Panel scale", 0.5, 2 }, { "spacing", "Button spacing", 0, 32 },
@@ -305,7 +305,14 @@ local function build()
     window:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
     window:SetBackdropColor(0.06, 0.055, 0.05, 0.98)
     window:SetBackdropBorderColor(0.55, 0.45, 0.28)
-    textAt(window, "GameFontNormalLarge", 18, 14):SetText("Forever Pet Modes")
+    local title = textAt(window, "GameFontNormalLarge", 18, 14)
+    title:SetText("Forever Pet Modes")
+    local version = C_AddOns.GetAddOnMetadata(addonName, "Version")
+    if version and version ~= "" then
+        local label = window:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        label:SetPoint("LEFT", title, "RIGHT", 8, 0)
+        label:SetText("v" .. version)
+    end
     window.advanced = button(window, 85, "Advanced", function() selectPage(page, not advanced) end)
     window.advanced:SetPoint("TOPRIGHT", -15, -9)
     window.scroll = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")

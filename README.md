@@ -7,21 +7,15 @@ Switch a hunter pet between solo and dungeon settings in **World of Warcraft: Fo
 | Solo Mode | Defensive | On | Green with a checkmark |
 | Dungeon Mode | Passive | Off | Blue with a checkmark |
 
-**Panel example** with Defensive selected and Growl on
-
-```text
-┌────────── Forever Pet Modes ──────────┐
-│ [ ✓ Solo Mode ]    [ Dungeon Mode ]  │
-│ Stance: Defensive                    │
-│ Growl ON       Bite OFF              │
-└───────────────────────────────────────┘
-```
+| Solo active | Dungeon active |
+| --- | --- |
+| ![Solo checked, Defensive, Growl on and Claw on](docs/curseforge/solo.png) | ![Dungeon checked, Passive, Growl off and Claw on](docs/curseforge/dungeon.png) |
 
 Turn off Growl on the pet bar while still in Defensive and both buttons lose their highlight. Select Passive and Dungeon lights up. If you configure two identical profiles, both highlight when their rules match.
 
-## Install v0.3.1
+## Install v0.3.2
 
-1. Download **ForeverPetModes-v0.3.1.zip** from the [release](https://github.com/jamesk111/ForeverPetModes/releases/tag/v0.3.1).
+1. Download **ForeverPetModes-v0.3.2.zip** from the [release](https://github.com/jamesk111/ForeverPetModes/releases/tag/v0.3.2).
 2. Close WoW and extract the ZIP into `World of Warcraft/_forever_/Interface/AddOns/`. The resulting file path should end in `AddOns/ForeverPetModes/ForeverPetModes.toc`.
 3. Start Forever, enable **Forever Pet Modes** in the AddOns list and log in. Summon a pet. Place its stance controls and Growl on the Blizzard pet action bar.
 4. Click a profile with the left mouse button and no modifier keys, outside combat. Hover to preview the target stance and autocast settings. Read the live stance and each ability’s ON/OFF indicator beneath the buttons. Type `/fpm status` to inspect the current stance, spell IDs, autocast values and profile matches.
@@ -30,7 +24,7 @@ Target client **1.60.1**, interface **16001**. The UI implementation was checked
 
 ## Configure the panel
 
-Type **`/fpm`** outside combat. Choose **Panel**, **Solo** or **Dungeon**. Each tab has an **Advanced** view. **Hunters only** is enabled by default, including on upgrade. Turn it off on the Panel tab to use the addon on another class. The settings command remains available on every class. **Save** applies all pages together. **Cancel** or Escape discards the draft. **Reset to defaults** stages the original position and both default profiles for review before saving.
+Type **`/fpm`** outside combat. The settings header shows the version loaded by the client. Include it when reporting a bug. Choose **Panel**, **Solo** or **Dungeon**. Each tab has an **Advanced** view. **Hunters only** is enabled by default, including on upgrade. Turn it off on the Panel tab to use the addon on another class. The settings command remains available on every class. **Save** applies all pages together. **Cancel** or Escape discards the draft. **Reset to defaults** stages the original position and both default profiles for review before saving.
 
 | Page | Controls |
 | --- | --- |
@@ -65,10 +59,10 @@ From the repository root with Lua 5.1 and Python 3 installed, run
 
 ```bash
 lua5.1 tests/run.lua
-python3 tools/package.py 0.3.1
+python3 tools/package.py 0.3.2
 ```
 
-The install package is written to `dist/ForeverPetModes-v0.3.1.zip`. There are no runtime dependencies beyond the game client.
+The install package is written to `dist/ForeverPetModes-v0.3.2.zip`. There are no runtime dependencies beyond the game client.
 
 ## Troubleshooting and shutdown
 

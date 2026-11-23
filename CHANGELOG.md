@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.2 · 2026-11-23
+
+- Display the installed addon version beside the title in the settings window.
+- Added CurseForge listing materials and in-game screenshots of both default modes.
+
 ## v0.3.1 · 2026-11-23
 
 - Register the optional minimap button with the shared launcher libraries used by EnhanceQoL’s button bin.
