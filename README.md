@@ -51,7 +51,7 @@ If the client accepts only part of a click, the addon reads the result. The butt
 
 The TOC loads nine Lua modules into a shared addon-private namespace. Defaults supplies configuration data. PetState reads the game's current pet bar. Profiles compares that snapshot against each profile. SecureActions binds hardware clicks and verifies their results. UI draws and moves the panel. Indicators lays out the live ability chips and their tooltips. Settings validates draft edits and saved values. Minimap registers a settings launcher with LibDataBroker and LibDBIcon when available and supplies a standalone button otherwise. Core handles class visibility, the addon lifecycle and coalesces event-driven refreshes. The ordered profile list drives button creation, settings pages and matching.
 
-The compatibility research, Blizzard policy review and design tradeoffs are in [ADR 0001](docs/adr/0001-forever-secure-actions.md). The [development guide](docs/development.md) covers tests, packaging, manual acceptance and publishing.
+The compatibility research and Blizzard policy review are in [ADR 0001](docs/adr/0001-forever-secure-actions.md). A version tag publishes the tested ZIP to GitHub and submits the same bytes to CurseForge. See the [release design](docs/adr/0002-tagged-distribution.md) and [development guide](docs/development.md#publishing) for setup, verification and recovery.
 
 ## Run checks and build a ZIP
 

@@ -4,6 +4,7 @@ on:
     branches: [main]
     tags: ['v*']
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,19 +26,24 @@ jobs:
           version=$(sed -n 's/^## Version: //p' ForeverPetModes/ForeverPetModes.toc)
           if [[ "$GITHUB_REF_TYPE" == tag ]]; then version=${GITHUB_REF_NAME#v}; fi
           python3 tools/package.py "$version"
+          python3 -m unittest discover -s tests -p 'test_*.py'
       - uses: actions/upload-artifact@v7.0.2
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         with:
           name: install-zip
           path: dist/*.zip
           if-no-files-found: error
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: check
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    concurrency: publish-${{ github.ref }}
     steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v8.0.2
         with:
           name: install-zip
@@ -46,8 +52,29 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          python3 -c 'from pathlib import Path; from tools.curseforge import release_notes; import sys; print(release_notes(Path("CHANGELOG.md").read_text(), sys.argv[1]))' "$GITHUB_REF_NAME" > "$RUNNER_TEMP/release-notes.md"
           if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY" --verify-tag --title "Forever Pet Modes $GITHUB_REF_NAME" --generate-notes
-          else
-            gh release upload "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY" --clobber
+            gh release create "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY" --verify-tag --title "Forever Pet Modes $GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/release-notes.md"
+          elif ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fxq "ForeverPetModes-$GITHUB_REF_NAME.zip"; then
+            gh release upload "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY"
           fi
+      - name: Submit the same ZIP to CurseForge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: python3 tools/curseforge.py "$GITHUB_REF_NAME"
+
+  verify-connection:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify CurseForge access without publishing
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          version=$(sed -n 's/^## Version: //p' ForeverPetModes/ForeverPetModes.toc)
+          python3 tools/curseforge.py "v$version" --check-only

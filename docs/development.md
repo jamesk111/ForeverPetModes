@@ -48,6 +48,10 @@ The [project fields, player description and gallery captions](curseforge/listing
 1. Update the TOC version, README release link and changelog.
 2. Run syntax, behavior and package checks. Include the live-client status in release notes.
 3. Merge to `main`, tag the reviewed commit with `vX.Y.Z`, and push the tag. Checks run on pull requests, main pushes and tags. The tag must match the TOC version.
-4. The tag job publishes the tested ZIP as a GitHub release asset. Download it, inspect its single top-level directory and verify the artifact against the local build. A release rerun replaces the asset for that tag.
+4. The tag job publishes the ZIP and that version's changelog to GitHub. It verifies the GitHub ZIP checksum and submits the same ZIP and notes to CurseForge project 1826325 as a Release for WoW Forever 1.60.1. CurseForge moderation applies as usual.
+
+The uploader reads the repository Actions secret `CF_API_TOKEN`. When rotating it, generate a CurseForge upload token and replace the encrypted secret in GitHub. Use **Actions → Validate and release → Run workflow** on main to test the saved credential, game version and changelog. This manual run only reads from CurseForge. Run the local uploader tests with `python3 -m unittest discover -s tests`.
+
+GitHub records the returned CurseForge file ID in the ZIP asset label. A rerun skips a completed upload. If the label says **CurseForge upload pending**, check the [project files](https://authors.curseforge.com/#/projects/1826325/files) for that exact ZIP before retrying. If CurseForge already has it, use GitHub's release editor to set the asset label to `ForeverPetModes-vX.Y.Z.zip (CurseForge file ID)`, substituting the version and numeric file ID. If the upload definitely failed before acceptance, clear the label and rerun the failed job. A checksum mismatch requires investigating the existing GitHub release before continuing. To turn off CurseForge publishing, remove the submission step from the workflow and revoke its upload token.
 
 Code contributions should keep the profile list data-driven and preserve the click boundary documented in [ADR 0001](adr/0001-forever-secure-actions.md).
