@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.1 · 2026-11-23
+
+- Register the optional minimap button with the shared launcher libraries used by EnhanceQoL’s button bin.
+- Leave positioning to the collector while grouped. Retain standalone behavior and saved settings for installations without the libraries.
+
 ## v0.3.0 · 2026-11-23
 
 - Show the panel only on Hunters by default. The account-wide setting can be changed from any class with /fpm.

@@ -7,7 +7,7 @@ Clone the repository, change to its root and install Lua 5.1 and Python 3. There
 ```bash
 for file in ForeverPetModes/*.lua; do luac5.1 -p "$file" || exit 1; done
 lua5.1 tests/run.lua
-python3 tools/package.py 0.3.0
+python3 tools/package.py 0.3.1
 ```
 
 The harness loads modules through the TOC, supplies fixture pet slots and fires events through the addon frame. It checks localization and ranks, manual transitions, partial failure feedback, pre-click slot reordering, missing/dead pets, restricted values, combat guards, profile parsing, persistence and staged settings changes. The harness inspects macro strings. Blizzard's protected execution, actual event delivery and visual rendering require the game.
@@ -16,7 +16,7 @@ The packager reads the manifest version, checks module membership and writes onl
 
 ## Manual acceptance on Forever
 
-**Status for v0.3.0:** live verification of the updated panel is pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
+**Status for v0.3.1:** live verification of the updated panel is pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
 
 | Scenario | Expected result |
 | --- | --- |
@@ -28,6 +28,7 @@ The packager reads the manifest version, checks module membership and writes onl
 | Dismiss, summon, kill and revive pet | Active marks clear and return with readable matching state. Removing a required ability shows an amber warning. Restoring it clears the warning. |
 | Start combat, swap or lose pet, then leave combat | No automatic pet commands, blocked-action errors or stale matches. Hovering the warning shows the combat restriction. On leaving combat, bindings update and a new click is required. |
 | Hunter visibility and upgrade | Log in on a Hunter and a Warlock with a pet. The panel appears only on the Hunter by default. From the Warlock, open /fpm, disable Hunters only and save. Restore it and verify both surfaces hide again. |
+| Minimap button bin | With EnhanceQoL’s bin enabled, turn the FPM launcher on after login. Open the bin, click the icon, save settings, enter and leave combat, and reload. Check that one icon stays grouped. Turn the launcher off and on. With the bin disabled verify independent placement and drag. |
 | Minimap shortcut | Enable the bubble on Panel. Open settings with a click, drag on a scaled minimap, save and reload. Check the saved angle, combat click guard, and access with the no-pet filter active. Turn the bubble off and verify /fpm still opens. |
 | Show/hide conditions | Check no-pet and combat toggles, enter/leave a dungeon and verify Inside/Outside. Check the deferred instance filter if zoning in lockdown. |
 | Drag, lock, change layout and style | Confirm title and outside padding drag, screen clamping, spacing, border, icons, colors and active mark. Verify with title and background hidden. |

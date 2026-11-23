@@ -45,6 +45,8 @@ function methods:SetShown(v) self.shown = v end
 function methods:IsShown() return self.shown end
 function methods:SetScript(k, f) self.scripts[k] = f end
 function methods:SetAttribute(k, v) assert(not combat) self.attributes[k] = v end
+function methods:GetParent() return self.parent end
+function methods:GetScript(kind) return self.scripts[kind] end
 function methods:GetPoint() return "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 120, 140 end
 function RegisterStateDriver(w, _, cond) assert(not combat) w.condition = cond end
 function UnitClass() return "Localized class name", playerClass end
@@ -466,6 +468,72 @@ test("Panel toggles persist and old settings adopt the Hunter default", function
     save.scripts.OnClick(save)
     assert(F.db.huntersOnly and not F.db.showMinimap and not F.minimapButton.shown)
     assert(F.loadSettings({minimapAngle=math.huge}).minimapAngle == F.defaults.minimapAngle)
+end)
+test("a collector can capture standalone launchers without a refresh stealing their anchors", function()
+    F.db.showMinimap = true
+    F.updateMinimap()
+    local button, bin = F.minimapButton, {}
+    button.parent = bin
+    button:SetPoint("LEFT", bin, "LEFT", 3, 0)
+    local anchor = button.lastPoint
+    F.updateMinimap()
+    Minimap.scripts.OnSizeChanged()
+    assert(button.lastPoint == anchor)
+    button.parent = Minimap
+end)
+test("broker discovery, bin ownership, visibility and settings click use one launcher", function()
+    local bin, registrations, shows, hides, clicks = {}, 0, 0, 0, 0
+    local broker, icons, icon = {}, {}, nil
+    function broker:NewDataObject(name, obj)
+        assert(name == "ForeverPetModes" and obj.type == "launcher")
+        return obj
+    end
+    function icons:Register(name, obj, db)
+        registrations = registrations + 1
+        icon = widget("Button", Minimap)
+        icon.object, icon.db = obj, db
+        icon:SetScript("OnDragStart", function(self) self.dragged = true end)
+    end
+    function icons:GetMinimapButton() return icon end
+    function icons:Show()
+        assert(not icon.db.hide)
+        shows = shows + 1
+        icon:Show()
+        -- The collector hooks Show, gathers the registered button and takes its anchor.
+        icon.parent = bin
+        icon:SetPoint("TOPLEFT", bin, "TOPLEFT", 4, -4)
+    end
+    function icons:Hide() assert(icon.db.hide) hides = hides + 1 icon:Hide() end
+    LibStub = function(name) return name == "LibDBIcon-1.0" and icons or broker end
+    local f = { db={ showMinimap=true, minimapAngle=72 }, classVisible=true,
+        openSettings=function() clicks=clicks+1 end, saveMinimapAngle=function(angle) assert(angle == 168) end }
+    assert(loadfile("ForeverPetModes/Minimap.lua"))("ForeverPetModes", f)
+    f.updateMinimap()
+    assert(registrations == 1 and shows == 1 and icon == f.minimapButton and icon.parent == bin)
+    local anchor = icon.lastPoint
+    icon.scripts.OnDragStart(icon)
+    assert(not icon.dragged)
+    f.db.minimapAngle = 180
+    f.updateMinimap()
+    assert(shows == 1 and icon.lastPoint == anchor)
+    icon.object.OnClick(icon, "LeftButton")
+    combat = true
+    icon.object.OnClick(icon, "LeftButton")
+    combat = false
+    assert(clicks == 1)
+    f.classVisible = false
+    f.updateMinimap()
+    f.updateMinimap()
+    assert(not icon.shown and hides == 1)
+    f.classVisible = true
+    f.updateMinimap()
+    assert(icon.shown and shows == 2 and registrations == 1)
+    icon.parent = Minimap
+    icon.scripts.OnDragStart(icon)
+    assert(icon.dragged)
+    icon.db.minimapPos = 168
+    icon.scripts.OnDragStop(icon)
+    LibStub = nil
 end)
 test("corrupt fields recover without dropping adjacent valid edits", function()
     local d = F.loadSettings({ width=-1, height=54, inactive="zzzzzz", position={},

@@ -1,6 +1,16 @@
 local _, F = ...
+local launcherName = "ForeverPetModes"
+local launcherIcon = "Interface\\Icons\\Ability_Hunter_BeastCall"
+local iconLib, iconSettings, visible
+
+local function tooltip(tip, standalone)
+    tip:SetText("Forever Pet Modes")
+    tip:AddLine(InCombatLockdown() and "Settings available after combat." or "Click for settings.", 1, 1, 1)
+    if standalone then tip:AddLine("Drag around the minimap to move.", 0.85, 0.8, 0.68) end
+end
 
 local function position(button, angle)
+    if button:GetParent() ~= Minimap then return end
     local radians = math.rad(angle)
     local x, y = math.cos(radians), math.sin(radians)
     if GetMinimapShape and GetMinimapShape() == "SQUARE" then
@@ -13,6 +23,7 @@ local function position(button, angle)
 end
 
 local function drag(button)
+    if button:GetParent() ~= Minimap then return end
     local cx, cy = Minimap:GetCenter()
     if not cx or not cy then return end
     local px, py = GetCursorPosition()
@@ -25,7 +36,7 @@ local function drag(button)
     position(button, angle)
 end
 
-local function create()
+local function createStandalone()
     local b = CreateFrame("Button", "ForeverPetModesMinimapButton", Minimap)
     b:SetSize(31, 31)
     b:SetFrameStrata("MEDIUM")
@@ -36,7 +47,7 @@ local function create()
     local icon = b:CreateTexture(nil, "ARTWORK")
     icon:SetSize(21, 21)
     icon:SetPoint("CENTER")
-    icon:SetTexture("Interface\\Icons\\Ability_Hunter_BeastCall")
+    icon:SetTexture(launcherIcon)
     local mask = b:CreateMaskTexture()
     mask:SetAllPoints(icon)
     mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask")
@@ -49,9 +60,7 @@ local function create()
 
     b:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-        GameTooltip:SetText("Forever Pet Modes")
-        GameTooltip:AddLine(InCombatLockdown() and "Settings available after combat." or "Click for settings.", 1, 1, 1)
-        GameTooltip:AddLine("Drag around the minimap to move.", 0.85, 0.8, 0.68)
+        tooltip(GameTooltip, self:GetParent() == Minimap)
         GameTooltip:Show()
     end)
     b:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -79,12 +88,59 @@ local function create()
     return b
 end
 
-function F.updateMinimap()
-    if not Minimap or not F.classVisible or not F.db.showMinimap then
-        if F.minimapButton then F.minimapButton:Hide() end
-        return
+local function createLauncher()
+    local broker = LibStub and LibStub("LibDataBroker-1.1", true)
+    iconLib = broker and LibStub("LibDBIcon-1.0", true)
+    if not iconLib then return createStandalone() end
+
+    iconSettings = { minimapPos = F.db.minimapAngle, hide = false }
+    local object = broker:NewDataObject(launcherName, {
+        type = "launcher", label = "Forever Pet Modes", icon = launcherIcon,
+        OnClick = function(_, mouseButton)
+            if mouseButton == "LeftButton" and F.classVisible and F.db.showMinimap and not InCombatLockdown() then
+                F.openSettings()
+            end
+        end,
+        OnTooltipShow = function(tip)
+            tooltip(tip, F.minimapButton and F.minimapButton:GetParent() == Minimap)
+        end,
+    })
+    iconLib:Register(launcherName, object, iconSettings)
+    local button = iconLib:GetMinimapButton(launcherName)
+    local start = button:GetScript("OnDragStart")
+    if start then
+        button:SetScript("OnDragStart", function(self, ...)
+            if self:GetParent() == Minimap then start(self, ...) end
+        end)
     end
-    if not F.minimapButton then F.minimapButton = create() end
-    position(F.minimapButton, F.db.minimapAngle)
-    F.minimapButton:Show()
+    button:HookScript("OnDragStop", function(self)
+        if self:GetParent() == Minimap then F.saveMinimapAngle(iconSettings.minimapPos) end
+    end)
+    return button
+end
+
+function F.updateMinimap()
+    local show = Minimap ~= nil and F.classVisible and F.db.showMinimap
+    local b = F.minimapButton
+    if not b then
+        if not show then return end
+        b = createLauncher()
+        F.minimapButton = b
+    end
+
+    if iconLib then
+        local moved = iconSettings.minimapPos ~= F.db.minimapAngle
+        iconSettings.minimapPos = F.db.minimapAngle
+        iconSettings.hide = not show
+        -- Show/Hide notify collectors. Repeating Show also resets the frame anchor.
+        if visible ~= show then
+            if show then iconLib:Show(launcherName) else iconLib:Hide(launcherName) end
+        elseif show and moved and b:GetParent() == Minimap then
+            iconLib:Show(launcherName)
+        end
+    else
+        if show then position(b, F.db.minimapAngle) end
+        if visible ~= show then b:SetShown(show) end
+    end
+    visible = show
 end
