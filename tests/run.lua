@@ -27,6 +27,9 @@ function methods:CreateFontString() return widget("FontString", self) end
 function methods:SetText(v) self.textValue = v end
 function methods:GetText() return self.textValue end
 function methods:GetStringHeight() return 12 end
+function methods:GetUnboundedStringWidth() return #(self.textValue:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) * 6 end
+function methods:SetEnabled(on) self.enabled = on end
+GameTooltip = widget("Tooltip")
 function methods:Show() assert(not (combat and self.protected)) self.shown = true end
 function methods:Hide() assert(not (combat and self.protected)) self.shown = false end
 function methods:SetShown(v) self.shown = v end
@@ -44,10 +47,14 @@ function IsInInstance() return inside end
 function IsModifierKeyDown() return false end
 function issecretvalue(v) return v == secret end
 function GetBuildInfo() return "1.60.1", "71037", "", 16001 end
-C_Spell = { GetSpellName=function(id) if id == 2649 then return "Knurren" end end }
+C_Spell = { GetSpellTexture=function() return 134400 end, GetSpellName=function(id) if id == 2649 then return "Knurren" elseif id == 17253 then return "Bite" end end }
 C_Timer = { After=function(_, fn) callbacks[#callbacks+1] = fn end }
 DEFAULT_CHAT_FRAME = { AddMessage=function(_, msg) chat[#chat+1] = msg end }
 UIParent, SlashCmdList, UISpecialFrames, NUM_PET_ACTION_SLOTS = {}, {}, {}, 10
+Enum = { ForbiddenAspect = { ScriptedInput = 1 } }
+local nativeButton = { IsForbidden = function() return false end, IsObjectType = function() return true end,
+    HasAccessConstraints = function() return false end, HasAnyForbiddenAspects = function() return false end }
+for slot = 1, 10 do _G["PetActionButton" .. slot] = nativeButton end
 local function flush()
     local pending = callbacks
     callbacks = {}
@@ -124,11 +131,11 @@ test("Dungeon to Solo clears stale color and tracks late Growl with no extra eve
     flush()
     assert(not soloButton.mark.shown and not dungeonButton.mark.shown)
     assert(F.panel.status:GetText():find("Stance: Defensive", 1, true))
-    assert(F.panel.status:GetText():match("Knurren.-OFF"))
+    assert(F.panel.chips[1].text:GetText():match("Knurren.-OFF"))
     slots[4][6] = 1
     flush()
     assert(soloButton.mark.shown and not dungeonButton.mark.shown)
-    assert(F.panel.status:GetText():match("Knurren.-ON"))
+    assert(F.panel.chips[1].text:GetText():match("Knurren.-ON"))
     assert(#chat == 0)
     flush()
     slots[5][4], slots[10][4], slots[4][6] = false, true, false
@@ -151,8 +158,8 @@ test("live panel lists other autocasts and marks missing Growl unavailable", fun
     local growl = slots[4]
     slots[4] = { "Bite", nil, 0, false, 1, false, 17253 }
     F.refresh()
-    local text = F.panel.status:GetText()
-    assert(text:match("Bite.-OFF") and text:match("Knurren.-Unavailable"))
+    assert(F.panel.chips[1].text:GetText():match("Knurren.-Unavailable"))
+    assert(F.panel.chips[2].text:GetText():match("Bite.-OFF"))
     assert(not soloButton.mark.shown and not dungeonButton.mark.shown)
     slots[4] = growl
     F.refresh()
@@ -166,7 +173,7 @@ test("summon, dismissal, death, resurrection and pet swaps", function()
     exists = false
     event("UNIT_PET", "player")
     flush()
-    assert(not dungeonButton.mark.shown and not dungeonButton.attributes.type1)
+    assert(not dungeonButton.mark.shown and not dungeonButton.attributes.type1 and dungeonButton.warning.shown)
     exists, dead = true, true
     assert(F.readPet().reason:find("Revive"))
     dead, bar = false, false
@@ -194,6 +201,7 @@ test("combat defers frame changes and emits manual fallback", function()
     soloButton.scripts.PreClick(soloButton)
     soloButton.scripts.PostClick(soloButton)
     assert(not F.panel.status:GetText():find("combat", 1, true) and #chat == 0)
+    assert(dungeonButton.warning.shown and dungeonButton.mark.shown)
     assert(not F.applySettings(F.copy(F.db)))
     combat = false
     event("PLAYER_REGEN_ENABLED")
@@ -253,6 +261,111 @@ test("settings window applies edits, cancels and stages reset", function()
     reset.scripts.OnClick()
     save.scripts.OnClick()
     assert(F.db.width == 100 and #F.db.profiles == 2)
+end)
+test("Growl stays first, chips share a row, and hover identifies unmanaged Bite", function()
+    slots[1] = { "Bite", 132127, false, false, true, true, 17253 }
+    F.refresh()
+    local first, second = F.panel.chips[1], F.panel.chips[2]
+    assert(first.ability.name == "Knurren" and second.ability.name == "Bite")
+    assert(second.x > first.x and second.y == first.y)
+    local lines = {}
+    function GameTooltip:AddLine(line) lines[#lines+1] = line end
+    second.scripts.OnEnter(second)
+    assert(table.concat(lines, " "):find("Dungeon Mode (active): Leave alone", 1, true))
+end)
+test("named tabs, icon picker, rank preservation, cancel and advanced settings", function()
+    F.openSettings()
+    local function find(caption)
+        for _, w in ipairs(frames) do
+            if w.textValue == caption and w.shown then return w end
+        end
+        error("could not find " .. caption)
+    end
+    local soloTab = find("Solo")
+    soloTab.scripts.OnClick()
+    local function pickFor(name)
+        for _, w in ipairs(frames) do
+            if w.ability and w.buttons and w.ability.name == name and w.shown then return w end
+        end
+    end
+    local growl, bite = pickFor("Knurren"), pickFor("Bite")
+    assert(growl.buttons[2].enabled == false and bite.buttons[1].enabled == false)
+    bite.buttons[3].scripts.OnClick()
+    growl.buttons[3].scripts.OnClick()
+    assert(growl.buttons[3].enabled == false)
+    find("Advanced").scripts.OnClick()
+    assert(not bite.shown)
+    find("Save").scripts.OnClick()
+    local rules = F.db.profiles[1].rules
+    assert(#rules == 2 and F.rulesText(rules):find("2649=off", 1, true))
+    assert(F.rulesText(rules):find("17253=off", 1, true))
+    F.openSettings()
+    soloTab.scripts.OnClick()
+    growl.buttons[1].scripts.OnClick()
+    find("Cancel").scripts.OnClick()
+    assert(#F.db.profiles[1].rules == 2)
+    F.openSettings()
+    soloTab.scripts.OnClick()
+    slots[1] = nil
+    F.refresh()
+    assert(pickFor("Bite") and not pickFor("Bite").ability.spell)
+    pickFor("Bite").buttons[1].scripts.OnClick()
+    find("Save").scripts.OnClick()
+    assert(F.rulesText(F.db.profiles[1].rules) == "2649=off")
+end)
+test("preflight clears a lost skill binding and restores it when the pet returns", function()
+    local p = F.db.profiles[1]
+    local b
+    for _, w in ipairs(frames) do if w.profile == p then b = w end end
+    local growl = slots[4]
+    slots[4] = nil
+    b.scripts.PreClick(b)
+    assert(b.attributes.type1 == nil and b.problem:find("Knurren", 1, true))
+    F.refresh()
+    assert(b.warning.shown)
+    slots[4] = growl
+    event("UNIT_PET", "player")
+    flush()
+    assert(not b.warning.shown and b.attributes.type1 == "macro")
+end)
+test("an inaccessible native stance button cannot partially apply a mismatched profile", function()
+    local s = F.readPet()
+    local p = F.copy(F.defaults.profiles[1])
+    local name = "PetActionButton" .. s.slots.Defensive
+    _G[name] = nil
+    local text, why = F.macro(p, s)
+    assert(not text and why:find("native pet bar", 1, true))
+    s.stance = "Defensive"
+    text = assert(F.macro(p, s))
+    assert(not text:find("/click", 1, true) and text:find("/petautocaston", 1, true))
+    _G[name] = nativeButton
+end)
+test("a partial switch exposes a specific hover warning until the pet matches", function()
+    local p = F.db.profiles[2]
+    local b
+    for _, w in ipairs(frames) do if w.profile == p then b = w end end
+    slots[4][6] = true
+    b.scripts.PostClick(b)
+    for i = 1, 4 do flush() end
+    assert(b.warning.shown and not b.mark.shown)
+    local lines = {}
+    function GameTooltip:AddLine(line) lines[#lines+1] = line end
+    b.scripts.OnEnter(b)
+    assert(table.concat(lines, " "):find("Knurren is ON (needs OFF)", 1, true))
+    slots[4][6] = false
+    F.refresh()
+    assert(not b.warning.shown and b.mark.shown and #chat == 0)
+end)
+test("large profiles keep their guards and omit satisfied commands to fit", function()
+    local s = F.readPet()
+    local p = { stance="Defensive", rules={} }
+    for i = 1, 6 do
+        table.insert(s.abilities, { id=i, name="Ability " .. i, on=i ~= 6 })
+        table.insert(p.rules, { id=i, on=true })
+    end
+    local text = assert(F.macro(p,s))
+    assert(#text <= 255 and text:find("nocombat", 1, true) and text:find("Ability 6", 1, true))
+    assert(not text:find("Ability 1", 1, true))
 end)
 test("corrupt fields recover without dropping adjacent valid edits", function()
     local d = F.loadSettings({ width=-1, height=54, inactive="zzzzzz", position={},

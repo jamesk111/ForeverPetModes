@@ -18,6 +18,10 @@ Use Blizzard's `InsecureActionButtonTemplate`, which checks combat lockdown befo
 
 Native commands can succeed independently. The addon therefore reads the pet bar again and offers manual steps for any remaining differences. It performs no automatic retry. The bar-only approach requires each configured ability and stance to be present and readable. A control restricted by the client stays restricted. A standard secure visibility driver handles combat and pet-presence filters. An instance-filter change during lockdown takes effect at the next safe refresh.
 
+## v0.2.0 preflight and presentation
+
+The settings picker edits the existing saved rule list, preserving rank IDs and profiles. Button availability and active matching are separate. An active pet profile can still be locked in combat. Before binding a click, the addon checks the native stance target and configured abilities. When the stance already matches, an inaccessible stance button can be omitted. When a full macro is too long, only differing commands are retained and each keeps its original guard. A pet change invalidates pending confirmations.
+
 ## Blizzard policy review
 
 The release is free, readable Lua with data and a license. It uses WoW's addon loader and UI APIs. Event callbacks read state and repaint. Profile application requires a deliberate hardware click. The package contains no external controller, advertising, donation prompts, or executable installer. This design follows the published add-on policy and the EULA restrictions on unauthorized automation. Blizzard retains authority over add-on behavior and can change its rules or APIs. Repeat the source and policy review after a relevant change. [Blizzard UI Add-On Development Policy](https://us.forums.blizzard.com/en/wow/t/ui-add-on-development-policy/24534/1) · [Blizzard EULA](https://www.blizzard.com/en-us/legal/2c72a35c-bf1b-4ae6-99ec-80624e1b429c/blizzard-end-user-license-agreement)

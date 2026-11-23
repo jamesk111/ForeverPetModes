@@ -7,26 +7,39 @@ function F.macro(profile, state)
     if state.reason then return nil, state.reason end
     local slot = state.slots[profile.stance]
     if not slot then return nil, "Put " .. profile.stance .. " on the pet bar." end
-    local lines = { "/click" .. guard .. "PetActionButton" .. slot }
+    local name = "PetActionButton" .. slot
+    local native = _G[name]
+    local lines, needed = {}, {}
+    if native and not native:IsForbidden() and native:IsObjectType("Button")
+        and not native:HasAccessConstraints() and not native:HasAnyForbiddenAspects(Enum.ForbiddenAspect.ScriptedInput) then
+        lines[1] = "/click" .. guard .. name
+        if state.stance ~= profile.stance then needed[1] = lines[1] end
+    elseif state.stance ~= profile.stance then
+        return nil, "Select " .. profile.stance .. " on the native pet bar. Its stance button is unavailable for addon clicks."
+    end
     local resolved = {}
     for _, rule in ipairs(profile.rules) do
         local spell = F.resolve(state, rule.id)
-        if not spell then return nil, "Missing autocastable pet bar ability for spell ID " .. rule.id .. "." end
+        if not spell then return nil, "Place " .. (F.abilityName(rule.id) or ("spell " .. rule.id)) .. " on the pet bar, or choose Leave alone in this profile." end
         if resolved[spell.id] ~= nil and resolved[spell.id] ~= rule.on then
-            return nil, "Two rules request different settings for " .. spell.name .. "."
+            return nil, "Two rules request different settings for " .. spell.name .. ".", "rules"
         end
         if resolved[spell.id] == nil then
             local command = rule.on and "/petautocaston" or "/petautocastoff"
             -- Only names returned by the live pet bar enter the macro.
             if spell.name == "" or spell.name:find("[%c%[%];|/]") then
-                return nil, "Use the native pet bar for this ability."
+                return nil, "Use the native pet bar for " .. spell.name .. ".", "rules"
             end
-            lines[#lines + 1] = command .. guard .. spell.name
+            local line = command .. guard .. spell.name
+            lines[#lines + 1] = line
+            if rule.on ~= spell.on then needed[#needed + 1] = line end
         end
         resolved[spell.id] = rule.on
     end
     local text = table.concat(lines, "\n")
-    if #text > 255 then return nil, "Profile exceeds the 255-byte macro budget. Use fewer ability rules." end
+    if #text > 255 then text = table.concat(needed, "\n") end
+    if text == "" then return nil end
+    if #text > 255 then return nil, "This combination exceeds the click limit. Choose Leave alone for an ability.", "rules" end
     return text
 end
 

@@ -9,6 +9,7 @@ end
 function F.refresh()
     local state = F.readPet()
     if F.panel then F.paint(state) end
+    F.refreshPicker(state)
     return state
 end
 
@@ -71,7 +72,7 @@ events:SetScript("OnEvent", function(self, event, unit)
         for _, name in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_ENABLED",
             "PLAYER_REGEN_DISABLED", "UNIT_PET", "UNIT_FLAGS", "UNIT_HEALTH", "PET_BAR_UPDATE",
             "PET_UI_UPDATE", "PET_BAR_UPDATE_COOLDOWN", "PET_BAR_UPDATE_USABLE", "ZONE_CHANGED_NEW_AREA", "SPELLS_CHANGED",
-            "UPDATE_VEHICLE_ACTIONBAR", "PLAYER_CONTROL_GAINED", "PLAYER_CONTROL_LOST" }) do
+            "UPDATE_VEHICLE_ACTIONBAR", "PLAYER_CONTROL_GAINED", "PLAYER_CONTROL_LOST", "MODIFIER_STATE_CHANGED" }) do
             if name == "UNIT_HEALTH" or name == "UNIT_FLAGS" then self:RegisterUnitEvent(name, "pet")
             else self:RegisterEvent(name) end
         end
@@ -80,6 +81,10 @@ events:SetScript("OnEvent", function(self, event, unit)
     elseif event == "UNIT_PET" and unit ~= "player" then
         return
     elseif F.panel then
+        if event == "UNIT_PET" or event == "PLAYER_ENTERING_WORLD" then
+            F.clickSerial = (F.clickSerial or 0) + 1
+            F.pending, F.failedProfile = nil, nil
+        end
         if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then F.visibility() end
         refreshSoon()
     end

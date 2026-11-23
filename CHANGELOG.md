@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.0 · 2026-11-23
+
+- Added a checkmark for a full profile match and an amber availability marker with hover details.
+- Put Growl first in the compact autocast row. Hover an ability to see how each profile treats it.
+- Replaced settings paging with named tabs and added a three-choice picker for pet abilities. Advanced retains color, icon and raw-rule controls.
+- Recheck the native stance target and pet at click time, discard stale confirmation callbacks on pet changes and shorten oversized macros when some settings already match.
+
 ## v0.1.2 · 2026-11-21
 
 - Recognize the Forever pet button labeled Defensive, including its DefensiveAssist token. This restores the Solo binding and its Growl ON command on affected pet bars.

@@ -18,6 +18,50 @@ function F.differences(profile, state)
     return missing
 end
 
+-- Both views use the same identity for configured ranks and the live pet spell.
+function F.abilityRows(state, profiles)
+    local rows, byID = {}, {}
+    local growl = F.resolve(state, 2649)
+    local growlID = growl and growl.id or 2649
+    local function add(id, name, spell)
+        if not byID[id] then
+            local row = { id = id, name = name, spell = spell, rules = {} }
+            rows[#rows + 1] = row
+            byID[id] = row
+        end
+        return byID[id]
+    end
+    for _, spell in ipairs(state.abilities) do add(spell.id, spell.name, spell) end
+    for _, profile in ipairs(profiles) do
+        for _, rule in ipairs(profile.rules) do
+            local spell = F.resolve(state, rule.id)
+            local id = spell and spell.id or rule.id
+            local name = spell and spell.name or F.abilityName(id) or ("Spell " .. id)
+            local row = add(id, name, spell)
+            local rules = row.rules[profile] or {}
+            rules[#rules + 1] = rule
+            row.rules[profile] = rules
+        end
+    end
+    table.sort(rows, function(a, b)
+        if a.id == growlID or b.id == growlID then return a.id == growlID and b.id ~= growlID end
+        if a.name == b.name then return a.id < b.id end
+        return a.name < b.name
+    end)
+    return rows
+end
+
+function F.setAbility(profile, row, enabled)
+    local previous = row.rules[profile] or {}
+    local id = previous[1] and previous[1].id or row.id
+    for i = #profile.rules, 1, -1 do
+        for _, rule in ipairs(previous) do
+            if profile.rules[i] == rule then table.remove(profile.rules, i) break end
+        end
+    end
+    if enabled ~= nil then profile.rules[#profile.rules + 1] = { id = id, on = enabled } end
+end
+
 function F.rulesText(rules)
     local parts = {}
     for _, rule in ipairs(rules) do

@@ -55,7 +55,7 @@ function F.readPet()
             end
         elseif flagged(allowed) and type(id) == "number" and type(name) == "string" then
             state.abilities[#state.abilities + 1] = {
-                id = id, name = name, on = flagged(enabled),
+                id = id, name = name, icon = icon, on = flagged(enabled),
             }
         end
     end
