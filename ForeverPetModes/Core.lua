@@ -29,6 +29,7 @@ end
 
 function F.applySettings(db)
     if InCombatLockdown() then return false end
+    if not db.showMinimap then db.panelHidden = false end
     F.clickSerial = (F.clickSerial or 0) + 1
     F.pending, F.failedProfile = nil, nil
     F.db, ForeverPetModesDB = db, db

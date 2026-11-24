@@ -126,7 +126,8 @@ function F.visibility()
     if InCombatLockdown() then return end
     local d, inside = F.db, IsInInstance()
     local conditions = {}
-    if not F.classVisible or (d.instance == "inside" and not inside) or (d.instance == "outside" and inside) then
+    if not F.classVisible or (d.panelHidden and d.showMinimap)
+        or (d.instance == "inside" and not inside) or (d.instance == "outside" and inside) then
         conditions[1] = "hide"
     else
         if d.hideCombat then conditions[#conditions + 1] = "[combat] hide" end

@@ -13,9 +13,9 @@ Switch a hunter pet between solo and dungeon settings in **World of Warcraft: Fo
 
 Turn off Growl on the pet bar while still in Defensive and both buttons lose their highlight. Select Passive and Dungeon lights up. If you configure two identical profiles, both highlight when their rules match.
 
-## Install v0.3.2
+## Install v0.3.3
 
-1. Download **ForeverPetModes-v0.3.2.zip** from the [release](https://github.com/jamesk111/ForeverPetModes/releases/tag/v0.3.2).
+1. Download **ForeverPetModes-v0.3.3.zip** from the [release](https://github.com/jamesk111/ForeverPetModes/releases/tag/v0.3.3).
 2. Close WoW and extract the ZIP into `World of Warcraft/_forever_/Interface/AddOns/`. The resulting file path should end in `AddOns/ForeverPetModes/ForeverPetModes.toc`.
 3. Start Forever, enable **Forever Pet Modes** in the AddOns list and log in. Summon a pet. Place its stance controls and Growl on the Blizzard pet action bar.
 4. Click a profile with the left mouse button and no modifier keys, outside combat. Hover to preview the target stance and autocast settings. Read the live stance and each ability’s ON/OFF indicator beneath the buttons. Type `/fpm status` to inspect the current stance, spell IDs, autocast values and profile matches.
@@ -33,7 +33,9 @@ Type **`/fpm`** outside combat. The settings header shows the version loaded by 
 | Solo / Dungeon | Button label, pet stance, ability names and icons with three autocast choices |
 | Profile → Advanced | Active color, icon file ID and raw spell-ID rules |
 
-For a minimap shortcut, turn on **Panel → Minimap button** and save. EnhanceQoL’s minimap button bin can collect the launcher alongside your other icons. Open the bin and left-click **Forever Pet Modes** outside combat to open or close settings. With no collector, drag the bubble along the minimap edge to reposition it. The angle is saved account-wide. The bubble follows **Hunters only** and remains accessible when pet or instance filters hide the main panel.
+To enable the minimap button, turn on **Panel → Minimap button** and click **Save**. Outside combat, left-click the bubble to hide or show the Solo/Dungeon panel. Right-click opens settings. To swap those actions, set **Show/hide panel with** to **Right-click** and save. The tooltip shows your current controls.
+
+A manual hide persists across reloads. Showing the panel restores your usual visibility rules. Turning the minimap button off also clears a manual hide. EnhanceQoL’s minimap button bin can collect the launcher alongside your other icons. With no collector, drag the bubble along the minimap edge to reposition it. The angle is saved account-wide. The bubble follows **Hunters only** and remains accessible when pet or instance filters hide the main panel.
 
 Drag the title or outer padding to position the panel. The padding still works with the title hidden. Set background opacity to `0` for a transparent panel. Position and settings are account-wide and saved by WoW on a normal logout or `/reload`.
 
@@ -49,7 +51,7 @@ If the client accepts only part of a click, the addon reads the result. The butt
 
 ## Architecture
 
-The TOC loads nine Lua modules into a shared addon-private namespace. Defaults supplies configuration data. PetState reads the game's current pet bar. Profiles compares that snapshot against each profile. SecureActions binds hardware clicks and verifies their results. UI draws and moves the panel. Indicators lays out the live ability chips and their tooltips. Settings validates draft edits and saved values. Minimap registers a settings launcher with LibDataBroker and LibDBIcon when available and supplies a standalone button otherwise. Core handles class visibility, the addon lifecycle and coalesces event-driven refreshes. The ordered profile list drives button creation, settings pages and matching.
+The TOC loads nine Lua modules into a shared addon-private namespace. Defaults supplies configuration data. PetState reads the game's current pet bar. Profiles compares that snapshot against each profile. SecureActions binds hardware clicks and verifies their results. UI draws and moves the panel. Indicators lays out the live ability chips and their tooltips. Settings validates draft edits and saved values. Minimap registers the panel and settings launcher with LibDataBroker and LibDBIcon when available and supplies a standalone button otherwise. Core handles class visibility, the addon lifecycle and coalesces event-driven refreshes. The ordered profile list drives button creation, settings pages and matching.
 
 The compatibility research and Blizzard policy review are in [ADR 0001](docs/adr/0001-forever-secure-actions.md). A version tag publishes the tested ZIP to GitHub and submits the same bytes to CurseForge. See the [release design](docs/adr/0002-tagged-distribution.md) and [development guide](docs/development.md#publishing) for setup, verification and recovery.
 
@@ -59,10 +61,10 @@ From the repository root with Lua 5.1 and Python 3 installed, run
 
 ```bash
 lua5.1 tests/run.lua
-python3 tools/package.py 0.3.2
+python3 tools/package.py 0.3.3
 ```
 
-The install package is written to `dist/ForeverPetModes-v0.3.2.zip`. There are no runtime dependencies beyond the game client.
+The install package is written to `dist/ForeverPetModes-v0.3.3.zip`. There are no runtime dependencies beyond the game client.
 
 ## Troubleshooting and shutdown
 

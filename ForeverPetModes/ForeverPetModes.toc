@@ -3,7 +3,7 @@
 ## Title: Forever Pet Modes
 ## Notes: Pet stance and autocast profiles for WoW: Forever.
 ## OptionalDeps: LibDataBroker-1.1, LibDBIcon-1.0, EnhanceQoL
-## Version: 0.3.2
+## Version: 0.3.3
 ## SavedVariables: ForeverPetModesDB
 Defaults.lua
 PetState.lua

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.3 · 2026-11-24
+
+- Outside combat, left-click the minimap button to hide or show the Solo/Dungeon panel. Right-click opens settings.
+- To swap the clicks, open /fpm, go to **Panel**, change **Show/hide panel with** to **Right-click**, and save. You can enable the optional **Minimap button** on the same tab.
+- The panel remembers a manual hide across reloads. Showing it restores your usual visibility rules. The minimap controls were tested in-game before release.
+
 ## v0.3.2 · 2026-11-23
 
 - Display the installed addon version beside the title in the settings window.

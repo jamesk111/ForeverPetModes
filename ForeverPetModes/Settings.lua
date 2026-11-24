@@ -11,7 +11,9 @@ local behavior = {
     { "locked", "Lock position", "toggle" }, { "hideNoPet", "Hide without a pet", "toggle" },
     { "hideCombat", "Hide in combat", "toggle" }, { "instance", "Show in", { "any", "inside", "outside" } },
     { "sound", "Confirmation sound", "toggle" },
-    { "huntersOnly", "Hunters only", "toggle" }, { "showMinimap", "Minimap button", "toggle" },
+    { "huntersOnly", "Hunters only", "toggle" },
+    { "showMinimap", "Minimap button", "toggle" },
+    { "panelToggleClick", "Show/hide panel with", { "Left-click", "Right-click" } },
 }
 local profileFields = {
     { "label", "Button label", "label" }, { "stance", "Pet stance", { "Defensive", "Passive", "Aggressive", "Assist" } },
@@ -71,6 +73,9 @@ end
 
 function F.loadSettings(saved)
     local db = F.mergeSettings(saved)
+    if type(saved) == "table" and saved.showMinimap == nil then
+        db.showMinimap = saved.minimapAction == "Open settings" or saved.minimapAction == "Show/hide panel"
+    end
     if math.abs(db.minimapAngle) < math.huge then db.minimapAngle = db.minimapAngle % 360
     else db.minimapAngle = F.defaults.minimapAngle end
     repair(db, appearance, F.defaults)
@@ -146,7 +151,7 @@ local function currentPage()
         return {appearance[4], appearance[5], appearance[6], appearance[7]}, draft
     end
     return {appearance[1], appearance[2], appearance[3], appearance[8], behavior[1], behavior[6], behavior[7],
-        appearance[9], appearance[10], behavior[2], behavior[3], behavior[4], behavior[5]}, draft
+        behavior[8], appearance[9], appearance[10], behavior[2], behavior[3], behavior[4], behavior[5]}, draft
 end
 
 local function capture()
@@ -351,6 +356,13 @@ end
 function F.saveMinimapAngle(angle)
     F.db.minimapAngle = angle
     if window and window:IsShown() then draft.minimapAngle = angle end
+end
+
+function F.togglePanel()
+    if InCombatLockdown() or not F.panel or not F.classVisible or not F.db.showMinimap then return end
+    F.db.panelHidden = not F.db.panelHidden
+    if window and window:IsShown() then draft.panelHidden = F.db.panelHidden end
+    F.visibility()
 end
 
 function F.openSettings()

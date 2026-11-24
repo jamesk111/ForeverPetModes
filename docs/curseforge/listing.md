@@ -12,7 +12,7 @@
 | Project icon | [Project avatar](icon.png) |
 | Source | [GitHub repository](https://github.com/jamesk111/ForeverPetModes) |
 | Issues | [Bug reports and feature requests](https://github.com/jamesk111/ForeverPetModes/issues) |
-| Install file | [ForeverPetModes-v0.3.2.zip](https://github.com/jamesk111/ForeverPetModes/releases/download/v0.3.2/ForeverPetModes-v0.3.2.zip) |
+| Install file | [ForeverPetModes-v0.3.3.zip](https://github.com/jamesk111/ForeverPetModes/releases/download/v0.3.3/ForeverPetModes-v0.3.3.zip) |
 
 ## Summary
 

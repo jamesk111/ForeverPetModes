@@ -433,15 +433,15 @@ test("minimap click opens settings, drag persists on save, and combat clicks sta
     for _, f in ipairs(frames) do if f.advanced and f.scroll then window = f end end
     assert(window and not window.shown)
     b.scripts.OnMouseDown(b)
-    b.scripts.OnClick(b)
-    assert(window.shown)
+    b.scripts.OnClick(b, "RightButton")
+    assert(window.shown and not F.db.panelHidden)
     b.scripts.OnMouseDown(b)
     cursorX, cursorY = 600, 620
     b.scripts.OnDragStart(b)
     assert(b.scripts.OnUpdate)
     b.scripts.OnDragStop(b)
-    b.scripts.OnClick(b)
-    assert(window.shown and not b.scripts.OnUpdate and math.abs(F.db.minimapAngle - 90) < 0.001)
+    b.scripts.OnClick(b, "LeftButton")
+    assert(window.shown and not F.db.panelHidden and not b.scripts.OnUpdate and math.abs(F.db.minimapAngle - 90) < 0.001)
     local save
     for _, f in ipairs(frames) do if f.textValue == "Save" then save = f end end
     save.scripts.OnClick(save)
@@ -449,8 +449,9 @@ test("minimap click opens settings, drag persists on save, and combat clicks sta
     assert(math.abs(b.lastPoint[5] - 83) < 0.001)
     combat = true
     b.scripts.OnMouseDown(b)
-    b.scripts.OnClick(b)
-    assert(not window.shown and #chat == 0)
+    b.scripts.OnClick(b, "LeftButton")
+    b.scripts.OnClick(b, "RightButton")
+    assert(not window.shown and not F.db.panelHidden and #chat == 0)
     combat = false
     mapShape = "SQUARE"
     F.db.minimapAngle = 45
@@ -458,9 +459,18 @@ test("minimap click opens settings, drag persists on save, and combat clicks sta
     assert(math.abs(b.lastPoint[4] - 83) < 0.001 and math.abs(b.lastPoint[5] - 83) < 0.001)
     mapShape = "ROUND"
 end)
-test("Panel toggles persist and old settings adopt the Hunter default", function()
+test("upgrades preserve minimap visibility and default to left-click for the panel", function()
     local old = F.loadSettings({ width=122 })
-    assert(old.width == 122 and old.huntersOnly and not old.showMinimap)
+    assert(old.width == 122 and old.huntersOnly and not old.showMinimap and old.panelToggleClick == "Left-click")
+    for _, saved in ipairs({{showMinimap=true}, {minimapAction="Open settings"}, {minimapAction="Show/hide panel"}}) do
+        local upgraded = F.loadSettings(saved)
+        assert(upgraded.showMinimap and upgraded.panelToggleClick == "Left-click")
+    end
+    assert(not F.loadSettings({minimapAction="Off"}).showMinimap)
+    assert(not F.loadSettings({showMinimap=false}).showMinimap)
+    assert(F.loadSettings({panelToggleClick="invalid"}).panelToggleClick == "Left-click")
+end)
+test("the Panel page swaps the two mouse buttons and saves the choice", function()
     F.openSettings()
     local save
     for _, f in ipairs(frames) do if f.textValue == "Save" then save = f end end
@@ -477,12 +487,59 @@ test("Panel toggles persist and old settings adopt the Hunter default", function
         error("Missing Panel toggle: " .. caption)
     end
     local only, bubble = toggle("Hunters only"), toggle("Minimap button")
-    assert(only.textValue == "Off" and bubble.textValue == "On")
+    local mapping = toggle("Show/hide panel with")
+    assert(only.textValue == "Off" and bubble.textValue == "On" and mapping.textValue == "Left-click")
     only.scripts.OnClick(only)
+    mapping.scripts.OnClick(mapping)
+    save.scripts.OnClick(save)
+    assert(F.db.huntersOnly and F.loadSettings(ForeverPetModesDB).panelToggleClick == "Right-click")
+    local b = F.minimapButton
+    b.scripts.OnMouseDown(b)
+    b.scripts.OnClick(b, "RightButton")
+    assert(F.db.panelHidden and not save.parent:IsShown())
+    b.scripts.OnClick(b, "LeftButton")
+    assert(F.db.panelHidden and save.parent:IsShown())
     bubble.scripts.OnClick(bubble)
     save.scripts.OnClick(save)
-    assert(F.db.huntersOnly and not F.db.showMinimap and not F.minimapButton.shown)
+    assert(not F.db.showMinimap and not F.db.panelHidden and not b.shown)
     assert(F.loadSettings({minimapAngle=math.huge}).minimapAngle == F.defaults.minimapAngle)
+end)
+test("manual hiding persists and showing restores the configured visibility rules", function()
+    local d = F.copy(F.db)
+    d.showMinimap, d.panelToggleClick, d.hideNoPet, d.hideCombat = true, "Left-click", true, true
+    d.instance = "any"
+    assert(F.applySettings(d))
+    local b = F.minimapButton
+    local function click(key)
+        b.scripts.OnMouseDown(b)
+        b.scripts.OnClick(b, key)
+    end
+    local rules = F.panel.condition
+    assert(rules:find("nopet", 1, true) and rules:find("combat", 1, true))
+    click("RightButton")
+    click("LeftButton")
+    local save
+    for _, f in ipairs(frames) do if f.textValue == "Save" then save = f end end
+    assert(save.parent:IsShown() and F.db.panelHidden and b.shown and F.panel.condition == "hide")
+    save.scripts.OnClick(save)
+    assert(F.applySettings(F.loadSettings(ForeverPetModesDB)))
+    event("PLAYER_ENTERING_WORLD")
+    combat = true
+    click("LeftButton")
+    combat = false
+    event("PLAYER_REGEN_ENABLED")
+    assert(F.db.panelHidden and F.panel.condition == "hide")
+    click("LeftButton")
+    assert(not F.db.panelHidden and F.panel.condition == rules)
+    b.scripts.OnMouseDown(b)
+    b.scripts.OnDragStart(b)
+    b.scripts.OnDragStop(b)
+    b.scripts.OnClick(b, "LeftButton")
+    assert(not F.db.panelHidden)
+    click("LeftButton")
+    d = F.copy(F.db)
+    d.showMinimap = false
+    assert(F.applySettings(d) and not F.db.panelHidden and F.panel.condition == rules and not b.shown)
 end)
 test("a collector can capture standalone launchers without a refresh stealing their anchors", function()
     F.db.showMinimap = true
@@ -520,7 +577,9 @@ test("broker discovery, bin ownership, visibility and settings click use one lau
     end
     function icons:Hide() assert(icon.db.hide) hides = hides + 1 icon:Hide() end
     LibStub = function(name) return name == "LibDBIcon-1.0" and icons or broker end
-    local f = { db={ showMinimap=true, minimapAngle=72 }, classVisible=true,
+    local toggles = 0
+    local f = { db={ showMinimap=true, panelToggleClick="Left-click", minimapAngle=72 }, classVisible=true,
+        togglePanel=function() toggles=toggles+1 end,
         openSettings=function() clicks=clicks+1 end, saveMinimapAngle=function(angle) assert(angle == 168) end }
     assert(loadfile("ForeverPetModes/Minimap.lua"))("ForeverPetModes", f)
     f.updateMinimap()
@@ -535,7 +594,13 @@ test("broker discovery, bin ownership, visibility and settings click use one lau
     combat = true
     icon.object.OnClick(icon, "LeftButton")
     combat = false
-    assert(clicks == 1)
+    assert(toggles == 1 and clicks == 0)
+    icon.object.OnClick(icon, "RightButton")
+    f.db.panelToggleClick = "Right-click"
+    icon.object.OnClick(icon, "LeftButton")
+    assert(toggles == 1 and clicks == 2)
+    icon.object.OnClick(icon, "RightButton")
+    assert(toggles == 2 and clicks == 2)
     f.classVisible = false
     f.updateMinimap()
     f.updateMinimap()

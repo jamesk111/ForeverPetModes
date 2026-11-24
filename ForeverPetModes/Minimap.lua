@@ -5,8 +5,25 @@ local iconLib, iconSettings, visible
 
 local function tooltip(tip, standalone)
     tip:SetText("Forever Pet Modes")
-    tip:AddLine(InCombatLockdown() and "Settings available after combat." or "Click for settings.", 1, 1, 1)
+    if InCombatLockdown() then
+        tip:AddLine("Minimap controls available after combat.", 1, 1, 1)
+    else
+        local panel = F.db.panelHidden and " to show the panel." or " to hide the panel."
+        local leftToggles = F.db.panelToggleClick == "Left-click"
+        tip:AddLine("Left-click" .. (leftToggles and panel or " for settings."), 1, 1, 1)
+        tip:AddLine("Right-click" .. (leftToggles and " for settings." or panel), 1, 1, 1)
+    end
     if standalone then tip:AddLine("Drag around the minimap to move.", 0.85, 0.8, 0.68) end
+end
+
+local function launcherClick(_, mouseButton)
+    if InCombatLockdown() or not F.classVisible or not F.db.showMinimap then return end
+    local panelButton = F.db.panelToggleClick == "Left-click" and "LeftButton" or "RightButton"
+    if mouseButton == panelButton then
+        F.togglePanel()
+    elseif mouseButton == "LeftButton" or mouseButton == "RightButton" then
+        F.openSettings()
+    end
 end
 
 local function position(button, angle)
@@ -41,7 +58,7 @@ local function createStandalone()
     b:SetSize(31, 31)
     b:SetFrameStrata("MEDIUM")
     b:SetFrameLevel(Minimap:GetFrameLevel() + 8)
-    b:RegisterForClicks("LeftButtonUp")
+    b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     b:RegisterForDrag("LeftButton")
 
     local icon = b:CreateTexture(nil, "ARTWORK")
@@ -79,8 +96,8 @@ local function createStandalone()
         self:SetScript("OnUpdate", nil)
         if GameTooltip:IsOwned(self) then GameTooltip:Hide() end
     end)
-    b:SetScript("OnClick", function(self)
-        if not self.wasDragged and not InCombatLockdown() then F.openSettings() end
+    b:SetScript("OnClick", function(self, mouseButton)
+        if not self.wasDragged then launcherClick(self, mouseButton) end
     end)
     Minimap:HookScript("OnSizeChanged", function()
         if b:IsShown() then position(b, F.db.minimapAngle) end
@@ -96,11 +113,7 @@ local function createLauncher()
     iconSettings = { minimapPos = F.db.minimapAngle, hide = false }
     local object = broker:NewDataObject(launcherName, {
         type = "launcher", label = "Forever Pet Modes", icon = launcherIcon,
-        OnClick = function(_, mouseButton)
-            if mouseButton == "LeftButton" and F.classVisible and F.db.showMinimap and not InCombatLockdown() then
-                F.openSettings()
-            end
-        end,
+        OnClick = launcherClick,
         OnTooltipShow = function(tip)
             tooltip(tip, F.minimapButton and F.minimapButton:GetParent() == Minimap)
         end,
