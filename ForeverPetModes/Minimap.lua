@@ -2,9 +2,17 @@ local _, F = ...
 local launcherName = "ForeverPetModes"
 local launcherIcon = "Interface\\Icons\\Ability_Hunter_BeastCall"
 local iconLib, iconSettings, visible
+local lastTooltip
 
-local function tooltip(tip, standalone)
+local function tooltip(tip, standalone, state)
+    lastTooltip = tip
     tip:SetText("Forever Pet Modes")
+    state = state or F.readPet()
+    if state.reason then
+        tip:AddLine(state.reason, 1, 0.82, 0.4)
+    else
+        F.addPetStatusLines(tip, state, F.indicatorRows(state))
+    end
     if InCombatLockdown() then
         tip:AddLine("Minimap controls available after combat.", 1, 1, 1)
     else
@@ -14,6 +22,14 @@ local function tooltip(tip, standalone)
         tip:AddLine("Right-click" .. (leftToggles and " for settings." or panel), 1, 1, 1)
     end
     if standalone then tip:AddLine("Drag around the minimap to move.", 0.85, 0.8, 0.68) end
+end
+
+function F.refreshMinimapTooltip(state)
+    local b = F.minimapButton
+    if b and lastTooltip and lastTooltip:IsShown() and lastTooltip:IsOwned(b) then
+        tooltip(lastTooltip, b:GetParent() == Minimap, state)
+        lastTooltip:Show()
+    end
 end
 
 local function launcherClick(_, mouseButton)

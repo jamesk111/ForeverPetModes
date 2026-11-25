@@ -1,0 +1,12 @@
+<Bindings>
+    <Binding name="CLICK ForeverPetModesAttack:LeftButton" header="FOREVERPETMODES" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesFollow:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesStay:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesPetCare:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesFeed:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesRevive:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesFavorite1:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesFavorite2:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesFavorite3:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK ForeverPetModesFavorite4:LeftButton" category="ADDONS"/>
+</Bindings>

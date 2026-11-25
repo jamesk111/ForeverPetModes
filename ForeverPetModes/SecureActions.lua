@@ -57,10 +57,16 @@ end
 function F.prepareButton(button)
     button:RegisterForClicks("LeftButtonUp")
     button:SetAttribute("useOnKeyDown", false)
-    button:SetScript("PreClick", function(self)
-        if not InCombatLockdown() then F.bind(self, self.profile, F.readPet()) end
+    button:SetScript("PreClick", function(self, mouse)
+        if mouse == "RightButton" or InCombatLockdown() then return end
+        if self.profile and F.classVisible then F.bind(self, self.profile, F.readPet())
+        else
+            self:SetAttribute("type1", nil)
+            self.boundText = nil
+        end
     end)
-    button:SetScript("PostClick", function(self)
+    button:SetScript("PostClick", function(self, mouse)
+        if mouse == "RightButton" or not self.profile or not F.classVisible then return end
         F.clickSerial = (F.clickSerial or 0) + 1
         local serial, profile = F.clickSerial, self.profile
         F.pending, F.failedProfile = nil, nil

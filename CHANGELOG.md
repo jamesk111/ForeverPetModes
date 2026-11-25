@@ -1,5 +1,99 @@
 # Changelog
 
+## v0.4.0
+
+- Create custom profiles for your pet’s stance and autocasts. Pin skills and show their icons, names or both. The panel and optional minimap tooltip follow the pet’s current settings.
+- Attack, Follow and Stay sit beside your profiles. Right-click a profile, command or care button to bind or clear a shortcut.
+- See happiness, level, health and XP at a glance. Hover the pet badge for loyalty, diet and other readable details.
+- Mend switches to Revive for a dead pet. A dismissed pet gets a portrait and a Call button. Click Feed outside combat to pick compatible food directly from your bags.
+- Drag the top strip to move the panel or the lower-right corner to resize it. Collapse the pet controls to keep just the profiles and skills at the same height.
+- The release screenshots show the control panel, pet tooltip and food picker in WoW Forever 1.60.1.
+
+## v0.4.0-preview.18 · Local preview
+
+- Collapsing pet controls removes the divider and leaves even margins around the profiles and skills. Click the arrow at the top right to reopen the controls. Panel height and skill placement stay the same.
+- The resize corner uses two fine strokes that brighten on hover. The full corner still accepts a drag or a right-click.
+
+## v0.4.0-preview.17 · Local preview
+
+- Drag the unlocked panel by the full-width strip above the buttons, even with the title hidden.
+- Drag the bottom-right grip to resize. Skills reflow as you drag and the panel remembers its size. Right-click the grip to return to automatic sizing.
+
+## v0.4.0-preview.16 · Local preview
+
+- Skill badges now share a width and wrap onto aligned rows as the panel narrows. Under **Panel → Skill display**, choose **Icon only**, **Name only**, or **Icon and name**. Each mode keeps the autocast state visible.
+
+## v0.4.0-preview.15 · Local preview
+
+- Click Feed to see bag icons and counts for food your pet can eat. Click an icon to feed one piece. Duplicate stacks share an icon.
+- The stance now shows its native icon and a divider. Skill indicators pair spell icons with explicit ON, OFF and Unavailable labels.
+
+## v0.4.0-preview.14 · Local preview
+
+- When the pet controls are taller than the profile controls, the stance and ability rows use the available space beneath the profile buttons. Wrapped abilities keep their compact row spacing.
+
+## v0.4.0-preview.13 · Local preview
+
+- Dismissing your hunter pet replaces the control panel with a portrait and a single **Call <pet name>** button. The full panel returns when the pet does. Shift-click the card to revive a missing corpse if you have learned Revive Pet.
+
+## v0.4.0-preview.12 · Local preview
+
+- Added a purple pet XP bar beneath health. Hover the badge to see current and required XP. The bar hides when the pet has no XP goal.
+
+## v0.4.0-preview.11 · Local preview
+
+- The health bar draws WoW’s pet health percentage directly, including display-only values. Collapsing the pet column changes only the width.
+- Right-click an action button outside combat to bind a key or remove a shortcut. The menu identifies native pet-bar slots and asks before taking a key from another action.
+- One care button and shortcut switch between Mend, Revive and Call. The no-pet filter keeps learned recovery actions accessible when the pet is absent.
+
+## v0.4.0-preview.10 · Local preview
+
+- Group adjacent profile buttons into a single selector at compact spacing. The selected profile keeps its checkmark and configured color.
+- Place the happiness face, name and level at the top of the pet column. A wider health bar sits beside the level. Hover anywhere on the badge for details.
+- Align Attack, Follow and Stay below the badge with brighter shortcut labels. Care buttons have a quieter finish and a taller click area. The divider uses a small chevron with the same full-height click target.
+
+## v0.4.0-preview.9 · Local preview
+
+- Recall is now called Follow. Attack, Follow and Stay share a row and display their current pet-bar shortcuts. Hover for the full key name.
+- The pet badge includes a live health bar. Learned Call, Revive, Mend and Feed actions appear according to the pet’s state. Click Feed and choose food in your bags.
+- WoW’s Keybindings menu lists the three commands and four profile favorites. Solo and Dungeon start in slots 1 and 2. Assign custom profiles under their Advanced settings.
+
+## v0.4.0-preview.8 · Local preview
+
+- Restyle the pet-column divider with a bronze-rimmed circular handle and a directional arrow. Hovering anywhere along the divider highlights the handle.
+
+## v0.4.0-preview.7 · Local preview
+
+- Display the pet’s name and level beside its happiness face. Both lines fit within the face height, and hovering anywhere on the badge opens pet details.
+
+## v0.4.0-preview.6 · Local preview
+
+- Group pet controls in a collapsible right column and keep profiles, stance and autocasts together on the left. The divider remembers its position as open or closed.
+- Standardize the outer margins, row gaps and ability spacing. Hover the happiness face for live pet details, including health, resource, loyalty, diet and unpinned autocasts when available.
+
+## v0.4.0-preview.5 · Local preview
+
+- Round button border thickness to whole screen pixels so the sides, top and bottom render evenly at fractional UI scales.
+
+## v0.4.0-preview.4 · Local preview
+
+- Recall now uses the same border thickness as the profile buttons and keeps its icon inside the border.
+
+## v0.4.0-preview.3 · Local preview
+
+- Move Recall to the right of the profile controls and use the pet bar’s Follow icon. Group the happiness face with the stance and keep the ability indicators underneath.
+
+## v0.4.0-preview.2 · Local preview
+
+- Show Blizzard’s native happiness face beside the stance. Hover it for the mood name. The minimap tooltip includes the matching icon.
+
+## v0.4.0-preview.1 · Local preview
+
+- Duplicate, rename and remove custom profiles in settings.
+- Pin abilities for the panel and minimap tooltip. Growl stays first.
+- Hover the minimap button to see current profile matches, stance, autocasts and pet happiness.
+- Show your hunter pet's happiness on the panel and optionally add a separate Recall button for Follow.
+
 ## v0.3.3 · 2026-11-24
 
 - Outside combat, left-click the minimap button to hide or show the Solo/Dungeon panel. Right-click opens settings.

@@ -1,5 +1,6 @@
 """Build and verify the install ZIP using only the Python standard library."""
 import argparse
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -20,7 +21,12 @@ def package(version, destination):
         raise ValueError("Expected top-level Lua module names")
     if len(set(modules)) != len(modules) or set(modules) != {p.name for p in SOURCE.glob("*.lua")}:
         raise ValueError("Manifest must list every Lua module exactly once")
-    files = [toc, *(SOURCE / name for name in modules), ROOT / "LICENSE"]
+    bindings = SOURCE / "Bindings.xml"
+    entries = ET.parse(bindings).getroot()
+    commands = [entry.get("name") for entry in entries]
+    if entries.tag != "Bindings" or not commands or len(set(commands)) != len(commands):
+        raise ValueError("Expected unique keybindings in Bindings.xml")
+    files = [toc, *(SOURCE / name for name in modules), bindings, ROOT / "LICENSE"]
     destination.mkdir(parents=True, exist_ok=True)
     target = destination / f"{NAME}-v{version}.zip"
     with ZipFile(target, "w") as archive:

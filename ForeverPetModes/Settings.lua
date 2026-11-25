@@ -8,20 +8,26 @@ local appearance = {
     { "title", "Show title", "toggle" },
 }
 local behavior = {
-    { "locked", "Lock position", "toggle" }, { "hideNoPet", "Hide without a pet", "toggle" },
+    { "locked", "Lock position", "toggle" }, { "hideNoPet", "Hide without a pet or care action", "toggle" },
     { "hideCombat", "Hide in combat", "toggle" }, { "instance", "Show in", { "any", "inside", "outside" } },
     { "sound", "Confirmation sound", "toggle" },
     { "huntersOnly", "Hunters only", "toggle" },
     { "showMinimap", "Minimap button", "toggle" },
     { "panelToggleClick", "Show/hide panel with", { "Left-click", "Right-click" } },
+    { "showRecall", "Pet command buttons", "toggle" },
+    { "showHappiness", "Pet happiness", "toggle" },
+    { "indicatorMode", "Ability indicators", { "All abilities", "Pinned abilities" } },
+    { "showCare", "Pet care buttons", "toggle" },
+    { "skillDisplay", "Skill display", { "Icon and name", "Icon only", "Name only" } },
 }
 local profileFields = {
     { "label", "Button label", "label" }, { "stance", "Pet stance", { "Defensive", "Passive", "Aggressive", "Assist" } },
     { "color", "Active color (hex)", "color" }, { "icon", "Icon file ID", 1, 2147483647 },
     { "rules", "Autocast rules", "rules" },
+    { "favorite", "Keybinding favorite", { "None", "1", "2", "3", "4" } },
 }
 local window, page, draft, advanced
-local tabs, picks = {}, {}
+local tabs, picks, pinButtons = {}, {}, {}
 local render, selectPage
 local rows = {}
 
@@ -71,8 +77,29 @@ local function repair(target, fields, defaults)
     end
 end
 
+function F.ensureProfileIDs(db)
+    local nextID = math.max(1, F.db and F.db.nextProfileID or 1, db.nextProfileID or 1)
+    if nextID ~= math.floor(nextID) or nextID > 2147483647 then nextID = 1 end
+    local seen = {}
+    for _, p in ipairs(db.profiles) do
+        local id = p.bindingID
+        if type(id) == "number" and id >= 1 and id < 2147483647 and id == math.floor(id) and not seen[id] then
+            seen[id], nextID = true, math.max(nextID, id + 1)
+        else p.bindingID = nil end
+    end
+    for _, p in ipairs(db.profiles) do
+        if not p.bindingID then
+            p.bindingID, nextID = nextID, nextID + 1
+        end
+    end
+    db.nextProfileID = nextID
+end
+
 function F.loadSettings(saved)
     local db = F.mergeSettings(saved)
+    for _, key in ipairs({"columnWidth", "minPanelHeight"}) do
+        if not (db[key] >= 0 and db[key] < 100000) then db[key] = 0 end
+    end
     if type(saved) == "table" and saved.showMinimap == nil then
         db.showMinimap = saved.minimapAction == "Open settings" or saved.minimapAction == "Show/hide panel"
     end
@@ -80,6 +107,11 @@ function F.loadSettings(saved)
     else db.minimapAngle = F.defaults.minimapAngle end
     repair(db, appearance, F.defaults)
     repair(db, behavior, F.defaults)
+    for id, pinned in pairs(db.pinnedAbilities) do
+        if type(id) ~= "number" or id < 1 or id > 2147483647 or id ~= math.floor(id) or pinned ~= true then
+            db.pinnedAbilities[id] = nil
+        end
+    end
     local anchor = { CENTER=true, TOP=true, TOPLEFT=true, TOPRIGHT=true, BOTTOM=true,
         BOTTOMLEFT=true, BOTTOMRIGHT=true, LEFT=true, RIGHT=true }
     local p = db.position
@@ -87,11 +119,17 @@ function F.loadSettings(saved)
         or not (math.abs(p.x) < 100000 and math.abs(p.y) < 100000) then
         db.position = F.copy(F.defaults.position)
     end
+    local favorites = {}
     for i = 1, math.max(#db.profiles, #F.defaults.profiles) do
         local defaults = F.defaults.profiles[i] or F.defaults.profiles[1]
         if type(db.profiles[i]) ~= "table" then db.profiles[i] = F.copy(defaults) end
-        repair(db.profiles[i], profileFields, defaults)
+        local profile = db.profiles[i]
+        if i > #F.defaults.profiles and not validSaved(profileFields[6], profile.favorite) then profile.favorite = "None" end
+        repair(profile, profileFields, defaults)
+        if favorites[profile.favorite] then profile.favorite = "None" end
+        favorites[profile.favorite] = true
     end
+    F.ensureProfileIDs(db)
     return db
 end
 
@@ -135,6 +173,7 @@ local function rowAt(i)
             end
         end
         self:SetText(display(row.value))
+        if row.key == "indicatorMode" then F.refreshPicker(F.readPet()) end
     end)
     row.choice:SetPoint("TOPLEFT", 177, -y)
     rows[i] = row
@@ -143,7 +182,7 @@ end
 
 local function currentPage()
     if page > 1 then
-        local fields = advanced and {profileFields[3], profileFields[4], profileFields[5]}
+        local fields = advanced and {profileFields[3], profileFields[4], profileFields[5], profileFields[6]}
             or {profileFields[1], profileFields[2]}
         return fields, draft.profiles[page - 1]
     end
@@ -151,7 +190,8 @@ local function currentPage()
         return {appearance[4], appearance[5], appearance[6], appearance[7]}, draft
     end
     return {appearance[1], appearance[2], appearance[3], appearance[8], behavior[1], behavior[6], behavior[7],
-        behavior[8], appearance[9], appearance[10], behavior[2], behavior[3], behavior[4], behavior[5]}, draft
+        behavior[8], appearance[9], appearance[10], behavior[2], behavior[3], behavior[4], behavior[5],
+        behavior[9], behavior[12], behavior[10], behavior[13], behavior[11]}, draft
 end
 
 local function capture()
@@ -166,6 +206,11 @@ local function capture()
             row.input:SetFocus()
             return false
         end
+        if field[1] == "favorite" and value ~= "None" and target.favorite ~= value then
+            for _, other in ipairs(draft.profiles) do
+                if other.favorite == value then other.favorite = "None" end
+            end
+        end
         target[field[1]] = value
     end
     return true
@@ -177,7 +222,7 @@ local function pickAt(i)
     if picks[i] then return picks[i] end
     local pick = CreateFrame("Frame", nil, window.body)
     pick:SetSize(425, 28)
-    pick:SetPoint("TOPLEFT", 3, -93 - (i - 1) * 30)
+    pick:SetPoint("TOPLEFT", 3, -122 - (i - 1) * 30)
     pick.icon = pick:CreateTexture(nil, "ARTWORK")
     pick.icon:SetSize(21, 21)
     pick.icon:SetPoint("LEFT")
@@ -200,8 +245,39 @@ local function pickAt(i)
     return pick
 end
 
+local function refreshPins(state)
+    local fields = currentPage()
+    local y = #fields * 29 + 4
+    local abilities = rows[#fields].value == "Pinned abilities" and F.abilityRows(state, draft.profiles, draft.pinnedAbilities) or {}
+    for i, row in ipairs(abilities) do
+        local b = pinButtons[i]
+        if not b then
+            b = button(window.body, 243, "", function(self)
+                local ability = self.ability
+                if ability.pins then
+                    for _, id in ipairs(ability.pins) do draft.pinnedAbilities[id] = nil end
+                else
+                    draft.pinnedAbilities[ability.id] = true
+                end
+                refreshPins(F.readPet())
+            end)
+            pinButtons[i] = b
+        end
+        b.ability = row
+        b:ClearAllPoints()
+        b:SetPoint("TOPLEFT", 177, -y)
+        b:SetText(row.name .. (row.growl and " (always shown)" or row.pins and " (pinned)" or " (pin)"))
+        b:SetEnabled(not row.growl)
+        b:Show()
+        y = y + 26
+    end
+    for i = #abilities + 1, #pinButtons do pinButtons[i]:Hide() end
+    window.body:SetHeight(y + 6)
+end
+
 function F.refreshPicker(state)
-    if not window or not window:IsShown() or page == 1 or advanced then return end
+    if not window or not window:IsShown() or advanced then return end
+    if page == 1 then refreshPins(state) return end
     local profile = draft.profiles[page - 1]
     local stance = rows[2]
     stance.choices = {}
@@ -233,27 +309,42 @@ function F.refreshPicker(state)
         pick:Show()
     end
     for i = #abilities + 1, #picks do picks[i]:Hide() end
-    window.body:SetHeight(100 + #abilities * 30)
+    window.body:SetHeight(128 + #abilities * 30)
 end
 
 local function showTabs()
     local count = 1 + #draft.profiles
-    for i = 1, count do
+    local first = 1 + math.floor((page - 1) / 8) * 8
+    local visible = math.min(8, count - first + 1)
+    for i = 1, visible do
         if not tabs[i] then
-            tabs[i] = button(window, 103, "", function() selectPage(i, false) end)
+            tabs[i] = button(window, 103, "", function() selectPage(tabs[i].page, false) end)
         end
-        local p = draft.profiles[i - 1]
+        local targetPage = first + i - 1
+        local p = draft.profiles[targetPage - 1]
         local name = p and p.label or "Panel"
         if name == "Solo Mode" then name = "Solo" elseif name == "Dungeon Mode" then name = "Dungeon" end
         local tab = tabs[i]
-        tab:SetText(i == page and ("|cffffd274" .. name .. "|r") or name)
+        tab.page = targetPage
+        tab:SetText(targetPage == page and ("|cffffd274" .. name .. "|r") or name)
         tab:ClearAllPoints()
         tab:SetPoint("TOPLEFT", 15 + (i - 1) % 4 * 107, -43 - math.floor((i - 1) / 4) * 25)
-        tab:SetEnabled(i ~= page or advanced)
+        tab:SetEnabled(targetPage ~= page or advanced)
         tab:Show()
     end
-    for i = count + 1, #tabs do tabs[i]:Hide() end
-    local y = 43 + math.ceil(count / 4) * 25 + 10
+    for i = visible + 1, #tabs do tabs[i]:Hide() end
+    local y = 43 + math.ceil(visible / 4) * 25 + 10
+    window.prev:SetShown(count > 8)
+    window.next:SetShown(count > 8)
+    if count > 8 then
+        window.prev:ClearAllPoints()
+        window.next:ClearAllPoints()
+        window.prev:SetPoint("TOPLEFT", 15, -y)
+        window.next:SetPoint("TOPLEFT", 128, -y)
+        window.prev:SetEnabled(first > 1)
+        window.next:SetEnabled(first + visible <= count)
+        y = y + 26
+    end
     window.scroll:ClearAllPoints()
     window.scroll:SetPoint("TOPLEFT", 15, -y)
     window.scroll:SetPoint("BOTTOMRIGHT", -35, 73)
@@ -272,13 +363,16 @@ render = function()
         row.input:Hide()
     end
     for _, pick in ipairs(picks) do pick:Hide() end
+    for _, b in ipairs(pinButtons) do b:Hide() end
+    window.duplicate:SetShown(page > 1 and not advanced)
+    window.remove:SetShown(page > 3 and not advanced)
     local state = F.readPet()
     for i, field in ipairs(fields) do
         local row = rowAt(i)
         local key, kind = field[1], field[3]
         row.title:SetText(field[2])
         row.title:Show()
-        row.value, row.choices = target[key], kind
+        row.key, row.value, row.choices = key, target[key], kind
         if kind == "toggle" or type(kind) == "table" then
             row.input:Hide()
             row.choice:SetText(display(row.value))
@@ -324,7 +418,33 @@ local function build()
     window.body = CreateFrame("Frame", nil, window.scroll)
     window.body:SetSize(426, 1)
     window.scroll:SetScrollChild(window.body)
-    window.pickerHeading = textAt(window.body, "GameFontNormal", 4, 68)
+    window.prev = button(window, 110, "Previous tabs", function() selectPage(1 + (math.floor((page - 1) / 8) - 1) * 8, false) end)
+    window.next = button(window, 110, "Next tabs", function() selectPage(1 + (math.floor((page - 1) / 8) + 1) * 8, false) end)
+    window.duplicate = button(window.body, 145, "Duplicate profile", function()
+        if not capture() then return end
+        local profile = F.copy(draft.profiles[page - 1])
+        local names = {}
+        for _, p in ipairs(draft.profiles) do names[p.label] = true end
+        local n = 1
+        while names["Custom " .. n] do n = n + 1 end
+        profile.label = "Custom " .. n
+        profile.favorite = "None"
+        profile.bindingID = nil
+        table.insert(draft.profiles, profile)
+        page = #draft.profiles + 1
+        render()
+        rows[1].input:SetFocus()
+        rows[1].input:HighlightText()
+    end)
+    window.duplicate:SetPoint("TOPLEFT", 4, -62)
+    window.remove = button(window.body, 145, "Remove profile", function()
+        if page <= 3 then return end
+        table.remove(draft.profiles, page - 1)
+        page = math.min(page, #draft.profiles + 1)
+        render()
+    end)
+    window.remove:SetPoint("TOPLEFT", 155, -62)
+    window.pickerHeading = textAt(window.body, "GameFontNormal", 4, 98)
     window.message = textAt(window, "GameFontHighlightSmall", 16, 382)
     window.message:SetWidth(443)
     button(window, 128, "Reset to defaults", function()
@@ -335,6 +455,7 @@ local function build()
     button(window, 72, "Cancel", function() window:Hide() end):SetPoint("BOTTOMRIGHT", -95, 13)
     button(window, 72, "Save", function()
         if not capture() then return end
+        if draft.width ~= F.db.width then draft.columnWidth = 0 end
         local state = F.readPet()
         for i, profile in ipairs(draft.profiles) do
             if F.rulesText(profile.rules) ~= F.rulesText(F.db.profiles[i] and F.db.profiles[i].rules or {}) then
@@ -358,11 +479,26 @@ function F.saveMinimapAngle(angle)
     if window and window:IsShown() then draft.minimapAngle = angle end
 end
 
+function F.syncPanelGeometry()
+    if window and window:IsShown() then
+        draft.position = F.copy(F.db.position)
+        draft.columnWidth, draft.minPanelHeight = F.db.columnWidth, F.db.minPanelHeight
+    end
+end
+
 function F.togglePanel()
     if InCombatLockdown() or not F.panel or not F.classVisible or not F.db.showMinimap then return end
     F.db.panelHidden = not F.db.panelHidden
     if window and window:IsShown() then draft.panelHidden = F.db.panelHidden end
     F.visibility()
+end
+
+function F.togglePetControls()
+    if InCombatLockdown() or not F.classVisible or not F.panel then return end
+    F.db.petControlsCollapsed = not F.db.petControlsCollapsed
+    if window and window:IsShown() then draft.petControlsCollapsed = F.db.petControlsCollapsed end
+    F.layout()
+    F.refresh()
 end
 
 function F.openSettings()

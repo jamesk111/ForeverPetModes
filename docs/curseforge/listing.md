@@ -12,31 +12,36 @@
 | Project icon | [Project avatar](icon.png) |
 | Source | [GitHub repository](https://github.com/jamesk111/ForeverPetModes) |
 | Issues | [Bug reports and feature requests](https://github.com/jamesk111/ForeverPetModes/issues) |
-| Install file | [ForeverPetModes-v0.3.3.zip](https://github.com/jamesk111/ForeverPetModes/releases/download/v0.3.3/ForeverPetModes-v0.3.3.zip) |
+| Install file | [ForeverPetModes-v0.4.0.zip](https://github.com/jamesk111/ForeverPetModes/releases/download/v0.4.0/ForeverPetModes-v0.4.0.zip) |
 
 ## Summary
 
-Switch your hunter pet between Solo and Dungeon profiles and see its current stance, Growl and other autocasts at a glance.
+A hunter pet control panel for WoW Forever. Switch profiles, track stance and autocasts, command your pet, and feed it from your bags.
 
 ## Description
 
-Heading into a dungeon? Click **Dungeon** outside combat to set your pet to Passive and turn Growl autocast off. Back on your own, click **Solo** for Defensive and Growl on. Each button lights up when the pet’s stance and autocast settings match that profile.
+Forever Pet Modes puts your hunter’s pet profiles, commands and care in one compact panel for World of Warcraft: Forever.
 
-The panel shows your current stance and the autocast abilities on your pet bar. Growl appears first. Bite, Claw and other abilities show their own ON/OFF indicators. The defaults leave those other abilities alone. If you change Growl on Blizzard’s pet bar, the panel updates and clears the checkmark when the profile no longer matches.
+Heading into a dungeon? Click **Dungeon** outside combat for Passive stance and Growl off. Click **Solo** for Defensive stance and Growl on. A checkmark shows when your pet matches the profile. If you change Growl on the pet bar, the panel shows the new state right away.
 
-**Getting started**
+![Solo profile, pet commands and health and XP bars](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.0/docs/curseforge/control-panel.png)
 
-1. Log into a Hunter, summon your pet and put Growl and the stance controls on its action bar.
-2. Left-click Solo or Dungeon outside combat. In combat, you can still read the panel and use Blizzard’s pet bar.
-3. Type `/fpm` to move or customize the panel. On either profile tab, choose **Leave alone**, **Turn on** or **Turn off** for each ability. On **Panel**, adjust the scale, switch layouts or enable the minimap shortcut.
+**Make it yours.** Duplicate a profile to create your own stance and autocast rules. Pin the abilities you care about, choose icons, names or both, and resize the panel from the bottom-right corner. Fold away the pet commands whenever you just want to see profiles and skills.
 
-The panel is Hunter-only by default. The optional minimap button can sit on the map edge or inside a compatible button collector. Hover a warning to see what needs attention. For help, include the installed version shown beside the title in `/fpm`. [Report an issue](https://github.com/jamesk111/ForeverPetModes/issues).
+**Command and care for your pet.** Click Attack, Follow or Stay. Mend changes to Revive when your pet dies, and a dismissed pet gets a portrait you can click to call it back. Click Feed outside combat to see compatible food from your bags, then click an item to feed one piece. Right-click a command, care or profile button to manage its shortcut.
+
+![Feed Pet showing compatible food and stack counts](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.0/docs/curseforge/food-picker.png)
+
+**Check on your pet.** The pet badge shows happiness, name, level, health and progress toward the next level. Hover for details such as loyalty, diet and autocast states.
+
+![Bear’s pet details tooltip](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.0/docs/curseforge/pet-details.png)
+
+**Getting started.** Summon your pet and put Growl and the stance controls on its pet bar. Type /fpm outside combat to configure the panel. If you enable the minimap button, left-click it to show or hide the panel and right-click for settings. You can swap those clicks. The addon shows on Hunters by default.
+
+[Report a bug or request a feature](https://github.com/jamesk111/ForeverPetModes/issues).
 
 ## Gallery captions
 
-- [Solo](solo.png) — Solo is active with Defensive stance, Growl ON and Claw ON.
-- [Dungeon](dungeon.png) — Dungeon is active with Passive stance, Growl OFF and Claw ON.
-
-## First file changelog
-
-First CurseForge build for WoW: Forever. Includes Solo and Dungeon pet profiles, live stance and autocast indicators, editable per-ability rules, a movable panel, and an optional minimap shortcut. Version 0.3.2 adds the installed version to the settings header.
+- [Pet control panel](control-panel.png) — Solo is active. Bear’s health and XP appear beside its level, above the commands and care buttons.
+- [Pet details](pet-details.png) — Hover the pet badge to see happiness, experience, loyalty, diet and autocasts.
+- [Feed Pet](food-picker.png) — Click Feed to see food your pet can eat and how much you have in your bags.

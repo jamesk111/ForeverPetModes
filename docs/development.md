@@ -2,19 +2,31 @@
 
 ## Local setup
 
-Clone the repository, change to its root and install Lua 5.1 and Python 3. There are no Lua libraries, Python packages or daemons to configure. The game loads the nine source files in manifest order. Changes to Lua can normally be loaded with `/reload`. Restart the client after adding a module or changing the manifest if the new files are missing.
+Clone the repository, change to its root and install Lua 5.1 and Python 3. The game loads twelve Lua files in manifest order and discovers Bindings.xml at the addon root. Use `/reload` for Lua changes. Restart the client if new modules or keybindings are missing.
 
 ```bash
 for file in ForeverPetModes/*.lua; do luac5.1 -p "$file" || exit 1; done
 lua5.1 tests/run.lua
-python3 tools/package.py 0.3.3
+python3 -m unittest discover -s tests
+python3 tools/package.py 0.4.0
 ```
 
 The harness loads modules through the TOC, supplies fixture pet slots and fires events through the addon frame. It checks localization and ranks, manual transitions, partial failure feedback, pre-click slot reordering, missing/dead pets, restricted values, combat guards, profile parsing, persistence and staged settings changes. The harness inspects macro strings. Blizzard's protected execution, actual event delivery and visual rendering require the game.
 
-The packager reads the manifest version, checks module membership and writes only the TOC, referenced Lua and license under a single addon directory. It reopens the ZIP, checks CRCs, paths and bytes. The ZIP excludes test fixtures, docs and local client data.
+The packager checks the TOC version, Lua module membership and unique keybinding names. It includes the TOC, referenced Lua modules, Bindings.xml and license under a single addon directory. It reopens the ZIP and checks CRCs, paths and bytes.
 
 ## Manual acceptance on Forever
+
+Drag the top gutter with the title shown and hidden. Fold the pet controls and check the margins around the profiles. Click the top-right arrow to reopen. Verify the profiles stay in place and dragging beside the arrow moves the panel. Drag the lower-right grip in both axes at your usual UI scale. Confirm the upper-left stays anchored and skills wrap. Reload, lock the panel, and right-click the unlocked grip to check automatic sizing.
+
+For 0.4.0, switch pets in pinned view, change Growl and compare the panel and minimap tooltip with the native pet bar. Check the following additions with the pet column expanded.
+
+- Move Follow to another pet-bar slot and change that slot’s key. Compare its short label and tooltip with the native button. Send the pet to a hostile target, use Follow, then test Stay. Repeat during combat with the panel visible and check that stance and autocasts retain their settings.
+- Watch the health bar as the pet takes damage and receives Mend. Compare with the current and maximum health in the badge tooltip.
+- At normal gameplay scale, check that the full name tooltip opens over the badge, health and level fit on one line, and the Follow key clears its caption. Check icon mode, vertical profiles, a partially filled profile row, and collapse with the entire divider strip. Compare compact profile spacing with spacing above 4.
+- Bind the left care button. Check the same key and button position for Mend with a living pet, Revive with a dead pet and Call with a dismissed pet. Dismiss the pet with the no-pet filter on. Verify only the named summon card appears, click the portrait to summon, and check that the prior layout returns. Test the care shortcut, a stable swap, a login while dismissed, and a hunter with no remembered pet. Fold and expand before and after a reload and check the outer height. Click Feed (and try the bound key) out of combat. Compare the picker with compatible food in your bags, hover an icon and click it. Verify one piece is consumed and the picker closes. Try duplicate stacks, an empty inventory, moving or locking a stack, changing pets, collapsing the column and entering combat. Check ON/OFF legibility in all three skill display modes at different profile widths. Check a partial last row, a long localized skill name, and the saved choice after reload.
+- Right-click Follow, verify its native slot and unbind or rebind a test shortcut. Cancel a conflicting key, then confirm an intentional replacement. Verify the binding survives reload. Right-click a profile and confirm its right-click does not apply the profile.
+- Bind a free unmodified key to favorite 3, duplicate a profile, assign it to 3, and apply it with that key outside combat. Reassign and delete the favorite and confirm the old profile no longer fires. Check a separate modified shortcut for a direct command.
 
 **Status for v0.3.2:** live verification of the updated panel is pending. Record build, locale, pet and outcomes when running this checklist. Use a player-controlled game session with the default pet bar.
 
@@ -41,7 +53,7 @@ The packager reads the manifest version, checks module membership and writes onl
 
 ## CurseForge listing
 
-The [project fields, player description and gallery captions](curseforge/listing.md) accompany the original project avatar and the two player-provided in-game screenshots. The game ZIP contains only the runtime files and license. The captures document both selected profiles. The player confirmed that manually toggling Growl clears both profile checkmarks when neither profile matches, and the Growl indicator follows the actual ON/OFF state. The player tested the v0.3.3 minimap preview in-game and approved it for release. Separate in-game results for EnhanceQoL enabled and disabled are still open. [CurseForge submission guide](https://support.curseforge.com/support/solutions/articles/9000199552-project-submission-guide-and-tips)
+The [project fields, player description and gallery captions](curseforge/listing.md) accompany the original project avatar and the player-provided in-game screenshots. The game ZIP contains only the runtime files and license. The 0.4.0 captures show the expanded control panel, pet details and the food picker. Earlier captures document both selected profiles. The player confirmed that manually toggling Growl clears both profile checkmarks when neither profile matches, and the Growl indicator follows the actual ON/OFF state. The player tested the v0.3.3 minimap preview in-game and approved it for release. Separate in-game results for EnhanceQoL enabled and disabled are still open. [CurseForge submission guide](https://support.curseforge.com/support/solutions/articles/9000199552-project-submission-guide-and-tips)
 
 ## Publishing
 
