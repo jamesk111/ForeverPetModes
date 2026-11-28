@@ -11,9 +11,9 @@ Manage hunter pet profiles, commands, health and feeding in **World of Warcraft:
 
 Turn off Growl on the pet bar while still in Defensive and both buttons lose their highlight. Select Passive and Dungeon lights up. If you configure two identical profiles, both highlight when their rules match.
 
-## Install v0.4.0
+## Install v0.4.1
 
-1. Download **ForeverPetModes-v0.4.0.zip** from the [release](https://github.com/jamesk111/ForeverPetModes/releases/tag/v0.4.0).
+1. Download **ForeverPetModes-v0.4.1.zip** from the [release](https://github.com/jamesk111/ForeverPetModes/releases/tag/v0.4.1).
 2. Close WoW and extract the ZIP into `World of Warcraft/_forever_/Interface/AddOns/`. The resulting file path should end in `AddOns/ForeverPetModes/ForeverPetModes.toc`.
 3. Start Forever, enable **Forever Pet Modes** in the AddOns list and log in. Summon a pet. Place its stance controls and Growl on the Blizzard pet action bar.
 4. Click a profile with the left mouse button and no modifier keys, outside combat. Hover to preview the target stance and autocast settings. Read the live stance and each ability’s ON/OFF indicator beneath the buttons. Type `/fpm status` to inspect the current stance, spell IDs, autocast values and profile matches.
@@ -23,6 +23,12 @@ Target client **1.60.1**, interface **16001**. The release screenshots show the 
 ## Configure the panel
 
 ### Profiles, pet commands and care
+
+**Summon Hawk.** When a hawk is active, a small tab hangs below the panel. Beside the spell icon and count, each bird has its own countdown and shrinking bar. Read left to right for the next expiry. An empty slot shows a dash, and the tab disappears when both birds are gone. It follows the open food picker and moves above the panel near the bottom of the screen. A tilde such as **~11s** marks an estimate that can outlast a hawk that despawns early. Turn the tab off under **/fpm → Panel → Summon Hawk timers**. [Tracker design](docs/adr/0004-hawk-timers.md)
+
+Drag the hawk tab outside combat to place it anywhere on screen. The panel and Call Pet card share the saved tab position. Right-click the tab to dock it again. Type `/fpm movehawks` with the pet panel or Call Pet card visible to position the tab while empty or while the main panel is locked. Drop it to finish, or repeat the command to exit placement.
+
+![The hawk tab beneath the panel shows 2/2 hawks, with about 10 and 17 seconds remaining.](docs/curseforge/hawk-timers.png)
 
 Open `/fpm` outside combat. Changes take effect when you click **Save**.
 
@@ -66,7 +72,7 @@ If the client accepts only part of a click, the addon reads the result. The butt
 
 ## Architecture
 
-The TOC loads twelve Lua modules into a shared addon-private namespace. Defaults supplies configuration data. PetState reads the pet bar and current pet. Profiles compares that snapshot against each profile. SecureActions prepares profile clicks and verifies their results. UI lays out and moves the panel. Indicators draws the ability chips and pet badge. PetControls configures command buttons, their binding labels and the contextual care spells. FoodPicker filters carried items for the current pet and targets the chosen bag slot on click. ButtonBindings handles context menus, key capture and saving. WoW loads the optional shortcuts from Bindings.xml. Settings validates draft edits and saved values. Minimap registers the launcher with LibDataBroker and LibDBIcon when available and supplies a standalone button otherwise. Core handles class visibility, the addon lifecycle and event-driven refreshes. See the [pet controls design](docs/adr/0003-pet-recall.md) for the binding and visibility decisions.
+The TOC loads thirteen Lua modules into a shared addon-private namespace. Defaults supplies configuration data. PetState reads the pet bar and current pet. Profiles compares that snapshot against each profile. SecureActions prepares profile clicks and verifies their results. UI lays out and moves the panel. Indicators draws the ability chips and pet badge. PetControls configures command buttons, their binding labels and the contextual care spells. Hawks reads summon slots and player casts for the optional badge. FoodPicker filters carried items for the current pet and targets the chosen bag slot on click. ButtonBindings handles context menus, key capture and saving. WoW loads the optional shortcuts from Bindings.xml. Settings validates draft edits and saved values. Minimap registers the launcher with LibDataBroker and LibDBIcon when available and supplies a standalone button otherwise. Core handles class visibility, the addon lifecycle and event-driven refreshes. See the [pet controls design](docs/adr/0003-pet-recall.md) for the binding and visibility decisions.
 
 The compatibility research and Blizzard policy review are in [ADR 0001](docs/adr/0001-forever-secure-actions.md). A version tag publishes the tested ZIP to GitHub and submits the same bytes to CurseForge. See the [release design](docs/adr/0002-tagged-distribution.md) and [development guide](docs/development.md#publishing) for setup, verification and recovery.
 
@@ -77,7 +83,7 @@ From the repository root with Lua 5.1 and Python 3 installed, run
 ```bash
 lua5.1 tests/run.lua
 python3 -m unittest discover -s tests
-python3 tools/package.py 0.4.0
+python3 tools/package.py 0.4.1
 ```
 
 The packager expects the version in the checked-out TOC and writes the ZIP to `dist/`. There are no runtime dependencies beyond the game client.

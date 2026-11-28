@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.4.1
+
+- Track up to two summoned hawks in a small tab beneath the pet panel. Each bird has a countdown and a shrinking bar. The first hawk to expire appears on the left and turns amber in its final three seconds. The tab hides when both birds are gone.
+- A tilde marks an estimated timer when the game restricts summon information. An estimate can outlast a hawk that despawns early.
+- Drag the tab outside combat to save its own position. Right-click to dock it again. Use `/fpm movehawks` with the panel visible to place the tab without summoning a hawk.
+
+![Two active hawks with about 10 and 17 seconds remaining](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.1/docs/curseforge/hawk-timers.png)
+
+## v0.4.1-preview.3 · Local preview
+
+- Drag the hawk tab outside combat to save an independent screen position. Right-click it to reattach. Use `/fpm movehawks` to position the tab without summoning a hawk.
+
+## v0.4.1-preview.2 · Local preview
+
+- Active hawks have a small tab just below the panel. Each timer has its own label and shrinking bar. An empty slot stays dim. The tab sits below the food picker while feeding and moves above the panel near the bottom of the screen.
+
+## v0.4.1-preview.1 · Local preview
+
+- An optional Summon Hawk badge uses the panel’s bottom margin. It shows the active count and each bird’s remaining seconds, soonest first, and disappears when empty. A tilde marks an estimated timer.
+
 ## v0.4.0
 
 - Create custom profiles for your pet’s stance and autocasts. Pin skills and show their icons, names or both. The panel and optional minimap tooltip follow the pet’s current settings.

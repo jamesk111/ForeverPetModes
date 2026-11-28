@@ -2,13 +2,13 @@
 
 ## Local setup
 
-Clone the repository, change to its root and install Lua 5.1 and Python 3. The game loads twelve Lua files in manifest order and discovers Bindings.xml at the addon root. Use `/reload` for Lua changes. Restart the client if new modules or keybindings are missing.
+Clone the repository, change to its root and install Lua 5.1 and Python 3. The game loads thirteen Lua files in manifest order and discovers Bindings.xml at the addon root. Use `/reload` for Lua changes. Restart the client if new modules or keybindings are missing.
 
 ```bash
 for file in ForeverPetModes/*.lua; do luac5.1 -p "$file" || exit 1; done
 lua5.1 tests/run.lua
 python3 -m unittest discover -s tests
-python3 tools/package.py 0.4.0
+python3 tools/package.py 0.4.1
 ```
 
 The harness loads modules through the TOC, supplies fixture pet slots and fires events through the addon frame. It checks localization and ranks, manual transitions, partial failure feedback, pre-click slot reordering, missing/dead pets, restricted values, combat guards, profile parsing, persistence and staged settings changes. The harness inspects macro strings. Blizzard's protected execution, actual event delivery and visual rendering require the game.
@@ -16,6 +16,10 @@ The harness loads modules through the TOC, supplies fixture pet slots and fires 
 The packager checks the TOC version, Lua module membership and unique keybinding names. It includes the TOC, referenced Lua modules, Bindings.xml and license under a single addon directory. It reopens the ZIP and checks CRCs, paths and bytes.
 
 ## Manual acceptance on Forever
+
+With the panel visible and no hawks active, use `/fpm movehawks`, drag the tab away and release it. Summon a hawk, move or fold the panel, and reload. Check that the tab returns to its chosen spot. Right-click it and open Feed to verify it docks to the picker again.
+
+For the hawk tracker, cast Summon Hawk twice six seconds apart. Compare both countdowns against the native summon icons, then recast with two out. Check an early despawn, Dismiss Pet and a reload with a bird still out. Repeat in combat with the panel visible. Check that automatic or manual sizing, collapse, opening Feed and dragging the resize corner leave the badge legible and the controls accessible. Turn off **Summon Hawk timers**, save and reload to check persistence.
 
 Drag the top gutter with the title shown and hidden. Fold the pet controls and check the margins around the profiles. Click the top-right arrow to reopen. Verify the profiles stay in place and dragging beside the arrow moves the panel. Drag the lower-right grip in both axes at your usual UI scale. Confirm the upper-left stays anchored and skills wrap. Reload, lock the panel, and right-click the unlocked grip to check automatic sizing.
 

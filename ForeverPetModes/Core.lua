@@ -19,10 +19,14 @@ local function updateDisplay()
     F.classVisible = not F.db.huntersOnly or class == "HUNTER"
     F.updateMinimap()
     if not F.classVisible then
-        if F.panel then F.visibility() end
+        if F.panel then
+            F.configureHawks(F.panel, false)
+            F.visibility()
+        end
         return
     end
     if not F.panel then F.createPanel() end
+    F.configureHawks(F.panel, class == "HUNTER" and F.db.showHawks)
     F.layout()
     F.refresh()
 end
@@ -62,6 +66,8 @@ local function command(message)
             local diff = F.differences(p, s)
             F.say(p.label .. ": " .. (#diff == 0 and "active" or table.concat(diff, " ")))
         end
+    elseif message:lower():match("^%s*movehawks%s*$") and not InCombatLockdown() then
+        F.toggleHawkPlacement()
     elseif InCombatLockdown() then
         F.say("Open settings after combat. /fpm status shows current pet information.")
     else

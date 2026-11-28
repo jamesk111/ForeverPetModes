@@ -12,7 +12,7 @@ F.defaults = {
     title = true, icons = false, hideNoPet = false, hideCombat = false,
     huntersOnly = true, showMinimap = false, panelToggleClick = "Left-click", minimapAngle = 225, panelHidden = false,
     indicatorMode = "All abilities", skillDisplay = "Icon and name", pinnedAbilities = {}, showHappiness = true, showRecall = true, showCare = true,
-    petControlsCollapsed = false, nextProfileID = 1,
+    petControlsCollapsed = false, showHawks = true, hawkPosition = {}, nextProfileID = 1,
     instance = "any", sound = false,
     position = { point = "CENTER", relative = "CENTER", x = 0, y = -135 },
     profiles = {

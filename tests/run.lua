@@ -72,6 +72,11 @@ function methods:GetPoint() return "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 120, 14
 function RegisterStateDriver(w, _, cond) assert(not combat) w.condition = cond end
 function UnitClass() return "Localized class name", playerClass end
 function GetCursorPosition() return cursorX, cursorY end
+local hawkTime, summons = 100, {}
+function GetTime() return hawkTime end
+function GetNumTotemSlots() return 4 end
+function GetTotemInfo(slot) return unpack(summons[slot] or {false}, 1, 7) end
+function GetTotemTimeLeft(slot) return summons[slot][3] + summons[slot][4] - hawkTime end
 function GetMinimapShape() return mapShape end
 Minimap = widget("Minimap")
 function Minimap:GetCenter() return 300, 200 end
@@ -1574,5 +1579,167 @@ test("the movement gutter spans the top and stays clear of buttons with either t
     p.dragStrip.scripts.OnDragStart(p.dragStrip)
     p.resizeGrip.scripts.OnDragStart(p.resizeGrip)
     assert(not started and not p.resizeGrip.scripts.OnUpdate and not p.resizeGrip.shown and not p.dragStrip.shown)
+end)
+local function badgeText(badge)
+    local times = {}
+    for _, lane in ipairs(badge.lanes) do
+        if lane.fill.shown then times[#times + 1] = lane.label:GetText() end
+    end
+    return badge.count:GetText() .. "  " .. table.concat(times, " · ")
+end
+test("hawk badge reconciles actual summons, cast order, death and reloading in either layout", function()
+    local d = F.loadSettings({})
+    assert(F.applySettings(d))
+    local p, t = F.panel, F.panel.hawkTracker
+    local badge = t.badges[1]
+    local function notify(event, ...) t.scripts.OnEvent(t, event, ...) end
+    local function text() return badgeText(badge) end
+    local width, height = p.layoutWidth, p.layoutHeight
+    assert(not badge.shown and badge.parent == p and t.badges[2].parent == p.callCard)
+    hawkTime = 100
+    notify("UNIT_SPELLCAST_SUCCEEDED", "player", "cast1", 1293241)
+    assert(text() == "1/2  ~18s")
+    assert(badge.lastPoint[2] == p.bg and badge.lastPoint[3] == "BOTTOMLEFT")
+    assert(badge.lanes[2].label:GetText() == "—" and not badge.lanes[2].fill.shown)
+    summons[3] = {true, "Faucon", 100.5, 18, 123, 1, 1293241}
+    hawkTime = 101
+    notify("PLAYER_TOTEM_UPDATE", 3)
+    assert(text() == "1/2  18s")
+    hawkTime = 107
+    summons[2] = {true, "Faucon", 107, 18, 123, 1, 1293525}
+    notify("PLAYER_TOTEM_UPDATE", 2)
+    notify("UNIT_SPELLCAST_SUCCEEDED", "player", "cast2", 1293525)
+    assert(text() == "2/2  12s · 18s")
+    assert(badge.lanes[1].label.layoutWidth == badge.lanes[2].label.layoutWidth)
+    assert(badge.lanes[1].fill.layoutWidth < badge.lanes[2].fill.layoutWidth)
+    assert(p.layoutWidth == width and p.layoutHeight == height)
+    d.petControlsCollapsed = true
+    assert(F.applySettings(d) and p.layoutHeight == height and text() == "2/2  12s · 18s")
+    summons[3] = {true, "Unrelated summon", 107, 20, 789, 1, 456}
+    notify("PLAYER_TOTEM_UPDATE", 3)
+    assert(text() == "1/2  18s")
+    notify("PLAYER_ENTERING_WORLD")
+    assert(text() == "1/2  18s")
+    summons = {}
+    notify("PLAYER_TOTEM_UPDATE", 2)
+    assert(not badge.shown and not t.shown)
+end)
+test("restricted hawk timers expire independently and only successful player hawk casts count", function()
+    local t = F.panel.hawkTracker
+    local function cast(id, unit) t.scripts.OnEvent(t, "UNIT_SPELLCAST_SUCCEEDED", unit or "player", secret, id) end
+    local function text() return badgeText(t.badges[1]) end
+    combat = true
+    summons[1] = {secret, secret, secret, secret, secret, secret, secret}
+    hawkTime = 200
+    cast(1293241, "party1")
+    cast(1293241, secret)
+    cast(secret)
+    cast(3044)
+    assert(not t.shown)
+    cast(1293241)
+    cast(1293241)
+    assert(text() == "1/2  ~18s")
+    hawkTime = 206
+    cast(1293526)
+    hawkTime = 212
+    cast(1293527)
+    assert(text() == "2/2  ~12s · ~18s")
+    hawkTime = 224
+    t.scripts.OnUpdate(t, 1)
+    assert(text() == "1/2  ~6s")
+    hawkTime = 230
+    t.scripts.OnUpdate(t, 1)
+    assert(not t.shown and not t.badges[1].shown)
+    cast(1293241)
+    cast(2641)
+    assert(not t.shown)
+    cast(1293241)
+    t.scripts.OnEvent(t, "PLAYER_DEAD")
+    assert(not t.shown)
+    combat, summons = false, {}
+    cast(1293241)
+    local d = F.copy(F.db)
+    d.showHawks = false
+    assert(F.applySettings(d) and not t.enabled and not t.shown)
+    playerClass, d.showHawks, d.huntersOnly = "WARLOCK", true, false
+    assert(F.applySettings(d) and not t.enabled)
+    playerClass = "HUNTER"
+end)
+test("hawk tab follows Feed and moves above the panel at the bottom of the screen", function()
+    local p = F.panel
+    assert(F.applySettings(F.loadSettings({})))
+    local t, tray = p.hawkTracker, assert(p.foodPicker)
+    local badge = t.badges[1]
+    local width, height = p.layoutWidth, p.layoutHeight
+    local bottom, visible = 100, false
+    local oldVisible, oldBottom = tray.IsVisible, tray.GetBottom
+    tray.IsVisible = function() return visible end
+    tray.GetBottom = function() return bottom end
+    t.scripts.OnEvent(t, "UNIT_SPELLCAST_SUCCEEDED", "player", "cast3", 1293241)
+    assert(badge.lastPoint[2] == p.bg)
+    visible = true
+    t.scripts.OnUpdate(t, 0.2)
+    assert(badge.lastPoint[2] == tray and badge.lastPoint[5] < 0)
+    bottom = 1
+    t.scripts.OnUpdate(t, 0.2)
+    assert(badge.lastPoint[2] == p and badge.lastPoint[3] == "TOPLEFT" and badge.lastPoint[5] > 0)
+    visible = false
+    t.scripts.OnUpdate(t, 0.2)
+    assert(badge.lastPoint[2] == p.bg and p.layoutWidth == width and p.layoutHeight == height)
+    assert(badgeText(t.badges[2]) == badgeText(badge))
+    tray.IsVisible, tray.GetBottom = oldVisible, oldBottom
+end)
+test("dragging a hawk tab saves its own scaled screen position and right-click restores docking", function()
+    local p, d = F.panel, F.loadSettings({})
+    assert(F.applySettings(d))
+    local t = p.hawkTracker
+    t.scripts.OnEvent(t, "PLAYER_DEAD")
+    local badge, card = unpack(t.badges)
+    function UIParent:GetWidth() return 1200 end
+    function UIParent:GetHeight() return 800 end
+    function badge:GetEffectiveScale() return 0.5 end
+    function badge:GetCenter() return 900, 600 end
+    local pPoint, pWidth, pHeight = p.lastPoint, p.layoutWidth, p.layoutHeight
+    SlashCmdList.FOREVERPETMODES("movehawks")
+    assert(badge.shown and badge.count:GetText() == "0/2")
+    badge.scripts.OnDragStart(badge)
+    assert(badge.dragging)
+    local before = badge.lastPoint
+    t.scripts.OnUpdate(t, 0.2)
+    assert(before == badge.lastPoint)
+    badge.scripts.OnDragStop(badge)
+    assert(not badge.dragging and F.db.hawkPosition.x == 0.375 and F.db.hawkPosition.y == 0.375)
+    assert(p.lastPoint == pPoint and p.layoutWidth == pWidth and p.layoutHeight == pHeight)
+    t.scripts.OnUpdate(t, 0.2)
+    assert(not badge.shown)
+    local restored = F.loadSettings(ForeverPetModesDB)
+    restored.petControlsCollapsed = true
+    assert(F.applySettings(restored))
+    hawkTime = hawkTime + 6
+    t.scripts.OnEvent(t, "UNIT_SPELLCAST_SUCCEEDED", "player", "cast4", 1293241)
+    assert(badge.lastPoint[2] == UIParent and badge.lastPoint[4] == 900 and badge.lastPoint[5] == 600)
+    assert(card.lastPoint[2] == UIParent and card.lastPoint[4] == 450 and card.lastPoint[5] == 300)
+    combat = true
+    badge.scripts.OnDragStart(badge)
+    card.scripts.OnClick(card, "RightButton")
+    assert(not badge.dragging and F.db.hawkPosition.x == 0.375)
+    combat = false
+    F.openSettings()
+    card.scripts.OnClick(card, "RightButton")
+    press("Save")
+    assert(not F.loadSettings(ForeverPetModesDB).hawkPosition.x)
+    assert(badge.lastPoint[2] == p.bg and card.lastPoint[2] == p.callCard)
+    assert(not F.loadSettings({hawkPosition={x=0.3, y=2}}).hawkPosition.x)
+    t.scripts.OnEvent(t, "PLAYER_DEAD")
+    F.db.locked = true
+    badge.scripts.OnDragStart(badge)
+    assert(not badge.dragging)
+    SlashCmdList.FOREVERPETMODES("movehawks")
+    badge.scripts.OnDragStart(badge)
+    assert(badge.dragging)
+    combat = true
+    t.scripts.OnEvent(t, "PLAYER_REGEN_DISABLED")
+    combat = false
+    assert(not badge.dragging and not badge.shown)
 end)
 print(count .. " tests passed")

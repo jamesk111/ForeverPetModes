@@ -19,6 +19,7 @@ local behavior = {
     { "indicatorMode", "Ability indicators", { "All abilities", "Pinned abilities" } },
     { "showCare", "Pet care buttons", "toggle" },
     { "skillDisplay", "Skill display", { "Icon and name", "Icon only", "Name only" } },
+    { "showHawks", "Summon Hawk timers", "toggle" },
 }
 local profileFields = {
     { "label", "Button label", "label" }, { "stance", "Pet stance", { "Defensive", "Passive", "Aggressive", "Assist" } },
@@ -97,6 +98,13 @@ end
 
 function F.loadSettings(saved)
     local db = F.mergeSettings(saved)
+    for _, axis in ipairs({"x", "y"}) do
+        local value = db.hawkPosition[axis]
+        if type(value) ~= "number" or not (value >= 0 and value <= 1) then
+            db.hawkPosition = {}
+            break
+        end
+    end
     for _, key in ipairs({"columnWidth", "minPanelHeight"}) do
         if not (db[key] >= 0 and db[key] < 100000) then db[key] = 0 end
     end
@@ -191,7 +199,7 @@ local function currentPage()
     end
     return {appearance[1], appearance[2], appearance[3], appearance[8], behavior[1], behavior[6], behavior[7],
         behavior[8], appearance[9], appearance[10], behavior[2], behavior[3], behavior[4], behavior[5],
-        behavior[9], behavior[12], behavior[10], behavior[13], behavior[11]}, draft
+        behavior[9], behavior[12], behavior[10], behavior[13], behavior[14], behavior[11]}, draft
 end
 
 local function capture()
@@ -477,6 +485,11 @@ end
 function F.saveMinimapAngle(angle)
     F.db.minimapAngle = angle
     if window and window:IsShown() then draft.minimapAngle = angle end
+end
+
+function F.saveHawkPosition(position)
+    F.db.hawkPosition = position
+    if window and window:IsShown() then draft.hawkPosition = F.copy(position) end
 end
 
 function F.syncPanelGeometry()
