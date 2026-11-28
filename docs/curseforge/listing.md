@@ -20,29 +20,36 @@ A hunter pet control panel for WoW Forever. Switch profiles, track stance and au
 
 ## Description
 
-Forever Pet Modes puts your hunter’s pet profiles, commands and care in one compact panel for World of Warcraft: Forever.
+Switch your hunter pet from solo play to a dungeon with one click. The panel shows its current stance and which abilities have autocast on. A checkmark tells you when the pet matches a profile, even after a manual change on the pet bar.
 
-Heading into a dungeon? Click **Dungeon** outside combat for Passive stance and Growl off. Click **Solo** for Defensive stance and Growl on. A checkmark shows when your pet matches the profile. If you change Growl on the pet bar, the panel shows the new state right away.
+## Start with Solo and Dungeon
 
-![Solo profile, pet commands and health and XP bars](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.0/docs/curseforge/control-panel.png)
+1. Summon your pet and put Growl and the stance controls on its pet bar.
+2. Outside combat, click **Solo** for Defensive stance with Growl on, or **Dungeon** for Passive stance with Growl off.
+3. Type `/fpm` to customize the panel and save your settings. It appears on Hunters by default.
 
-**Track your summoned hawks.** See how many hawks are out and how many seconds each has left. The first to expire is on the left. A tilde marks an estimate. Drag the tab outside combat to move it independently, or right-click to dock it again. Type `/fpm movehawks` to place it without spending mana.
+![Solo selected with Defensive stance, Growl on, and Bear’s health and XP beside its commands](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.0/docs/curseforge/control-panel.png)
 
-![Two active hawks with about 10 and 17 seconds remaining](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.1/docs/curseforge/hawk-timers.png)
+## Pet commands and care
 
-**Make it yours.** Duplicate a profile to create your own stance and autocast rules. Pin the abilities you care about, choose icons, names or both, and resize the panel from the bottom-right corner. Fold away the pet commands whenever you just want to see profiles and skills.
+- **Attack, Follow and Stay** are beside the profiles. Right-click a command, profile or care button outside combat to set its shortcut.
+- **Mend** changes to **Revive** when your pet dies. When you dismiss your pet, click its portrait to call it back.
+- **Feed** opens a row of food your pet can eat. Outside combat, click a food icon to feed one piece from your bags.
+- **Pet status** shows happiness, level, health and XP. Hover over your pet’s badge for loyalty, diet and other details.
 
-**Command and care for your pet.** Click Attack, Follow or Stay. Mend changes to Revive when your pet dies, and a dismissed pet gets a portrait you can click to call it back. Click Feed outside combat to see compatible food from your bags, then click an item to feed one piece. Right-click a command, care or profile button to manage its shortcut.
+## Summon Hawk timers
 
-![Feed Pet showing compatible food and stack counts](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.0/docs/curseforge/food-picker.png)
+Each active hawk gets a countdown. The hawk on the left expires first. In the screenshot, **2/2** means both hawks are out. The **~** before a time means it’s an estimate.
 
-**Check on your pet.** The pet badge shows happiness, name, level, health and progress toward the next level. Hover for details such as loyalty, diet and autocast states.
+![Two summoned hawks with about 10 and 17 seconds remaining](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.1/docs/curseforge/hawk-timers.png)
 
-![Bear’s pet details tooltip](https://raw.githubusercontent.com/jamesk111/ForeverPetModes/v0.4.0/docs/curseforge/pet-details.png)
+Drag the timer outside combat. If you have no hawks out, leave the pet panel visible and type `/fpm movehawks`. The empty timer appears. Drag it where you want it and release to save its position. Right-click it to attach it to the panel again.
 
-**Getting started.** Summon your pet and put Growl and the stance controls on its pet bar. Type /fpm outside combat to configure the panel. If you enable the minimap button, left-click it to show or hide the panel and right-click for settings. You can swap those clicks. The addon shows on Hunters by default.
+## Customize the panel
 
-[Report a bug or request a feature](https://github.com/jamesk111/ForeverPetModes/issues).
+In `/fpm`, duplicate a profile to choose its stance and autocasts. Pin skills, show icons or names, resize the panel, or fold away the pet commands. If you enable the minimap button, left-click it to show or hide the panel and right-click for settings. You can swap those clicks.
+
+[See the food picker and pet details in the gallery](https://www.curseforge.com/wow/addons/forever-pet-modes/gallery) · [Report an issue or suggest a feature](https://github.com/jamesk111/ForeverPetModes/issues) · [Source code](https://github.com/jamesk111/ForeverPetModes)
 
 ## Gallery captions
 

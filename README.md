@@ -26,7 +26,7 @@ Target client **1.60.1**, interface **16001**. The release screenshots show the 
 
 **Summon Hawk.** When a hawk is active, a small tab hangs below the panel. Beside the spell icon and count, each bird has its own countdown and shrinking bar. Read left to right for the next expiry. An empty slot shows a dash, and the tab disappears when both birds are gone. It follows the open food picker and moves above the panel near the bottom of the screen. A tilde such as **~11s** marks an estimate that can outlast a hawk that despawns early. Turn the tab off under **/fpm → Panel → Summon Hawk timers**. [Tracker design](docs/adr/0004-hawk-timers.md)
 
-Drag the hawk tab outside combat to place it anywhere on screen. The panel and Call Pet card share the saved tab position. Right-click the tab to dock it again. Type `/fpm movehawks` with the pet panel or Call Pet card visible to position the tab while empty or while the main panel is locked. Drop it to finish, or repeat the command to exit placement.
+Drag the hawk timer outside combat. If you have no hawks out, leave the pet panel or Call Pet card visible and type `/fpm movehawks`. The empty timer appears. Drag it where you want it and release to save its position. This also works when the main panel is locked. Right-click the timer to attach it to the panel again.
 
 ![The hawk tab beneath the panel shows 2/2 hawks, with about 10 and 17 seconds remaining.](docs/curseforge/hawk-timers.png)
 
